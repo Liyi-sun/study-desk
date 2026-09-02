@@ -273,7 +273,18 @@ details[open] summary::before{content:"▾ ";}
 .bkthumbs{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px;}
 .bkthumb{width:74px;height:74px;border-radius:10px;object-fit:cover;border:1px solid var(--line);position:relative;display:block;background:var(--card2);}
 .bkthumb.x{cursor:pointer;}
-.bkadd{width:74px;height:74px;border-radius:10px;border:1px dashed #3A4450;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:11px;background:none;cursor:pointer;gap:3px;}
+.bkadd{width:74px;height:74px;border-radius:10px;border:1px dashed #3A4450;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:11px;background:none;cursor:pointer;gap:3px;font-family:inherit;padding:0;}
+.bkacts{position:fixed;inset:0;z-index:130;display:flex;align-items:flex-end;justify-content:center;}
+.bkacts.hidden{display:none;}
+.bkacts .bkacts-mask{position:absolute;inset:0;background:rgba(8,10,12,.6);}
+.bkacts .bkacts-panel{position:relative;width:100%;max-width:470px;background:#1D232A;border:1px solid rgba(255,255,255,.08);border-bottom:none;border-radius:16px 16px 0 0;padding:12px 14px calc(16px + env(safe-area-inset-bottom));box-sizing:border-box;box-shadow:0 -10px 34px rgba(0,0,0,.45);}
+.bkacts .bkacts-title{font-size:13px;color:var(--muted);text-align:center;padding:4px 0 10px;}
+.bkacts .bkacts-panel button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:52px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:#242B33;color:var(--text);font-size:16px;margin-bottom:10px;font-family:inherit;}
+.bkacts .bkacts-panel button:active{background:#2E3740;}
+.bkacts .bkacts-panel button.bkacts-cancel{background:none;border-color:transparent;color:var(--muted);min-height:44px;margin-bottom:2px;}
+.bkcatsel{flex:1;min-width:0;background:#242B33;border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:16px;font-family:inherit;min-height:42px;padding:0 10px;box-sizing:border-box;}
+.bkcatsel option{background:#1D232A;color:var(--text);}
+#bkCustPanel{z-index:95;}
 .bkadd svg{display:block;}
 .bkdelx{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:#E0605E;color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
 .bkmonth{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
@@ -2201,9 +2212,79 @@ function renderMem(){
 /* ===================== 记账（钱包） ===================== */
 const BK_MAXIMG=3, BK_DB="study_vouchers_v1";
 const BK_CATS={
-  exp:["社保","物业","水费","电费","天然气","买菜","厨房用品","清洁日化","个人办公","停车","加油","保险","烟","彩票","礼物人情","其他"],
+  exp:["社保","物业","水费","电费","天然气","网费话费","买菜","厨房用品","清洁日化","个人办公","停车","加油","保险","烟","彩票","礼物人情","其他"],
   inc:["工资","奖金","理财收益","退款","报销","红包","其他"]
 };
+/* ===== v4.2：用户自定义分类（localStorage，随账本通用） ===== */
+function bkUserCats(){ try{ const v=JSON.parse(localStorage.getItem("bk_user_cats")||"null"); if(v&&Array.isArray(v.exp)&&Array.isArray(v.inc)) return v; }catch(e){} return {exp:[],inc:[]}; }
+function bkSaveUserCats(u){ try{ localStorage.setItem("bk_user_cats", JSON.stringify(u)); }catch(e){} }
+function bkAddUserCat(type,name){
+  name=(name||"").trim(); if(!name) return;
+  if(BK_CATS[type]&&BK_CATS[type].includes(name)) return;
+  const u=bkUserCats(); if(u[type].includes(name)) return;
+  u[type].push(name); bkSaveUserCats(u);
+}
+function bkDelUserCat(type,name){
+  const u=bkUserCats(); u[type]=u[type].filter(function(x){ return x!==name; }); bkSaveUserCats(u);
+  if(bkCat===name) bkCat="";
+}
+function bkCatOptions(type){
+  const fixed=BK_CATS[type]||[], user=(bkUserCats()[type]||[]);
+  const opt=function(n){ return '<option value="'+attrEsc(n)+'"'+(bkCat===n&&!bkCustomV?' selected':'')+'>'+esc(n)+'</option>'; };
+  let h='<option value=""'+(bkCustomV||bkCat?'':' selected')+'>选择'+(type==="exp"?"支出":"收入")+'分类…</option>';
+  if(user.length){ h+='<optgroup label="★ 我加的">'+user.map(opt).join("")+'</optgroup>'; }
+  h+='<optgroup label="常用">'+fixed.map(opt).join("")+'</optgroup>';
+  h+='<option value="__custom"'+(bkCustomV?' selected':'')+'>✏️ 自定义新名称…</option>';
+  return h;
+}
+function bkShowCustom(on){
+  const w=document.getElementById("bkCustomWrap"), ci=document.getElementById("bkCustomCat");
+  if(w) w.style.display=on?"flex":"none";
+  if(ci) ci.value=bkCustomV||"";
+  if(on&&ci) setTimeout(function(){ try{ ci.focus(); }catch(e){} },80);
+}
+function bkBindSel(){
+  const sel=document.getElementById("bkCatSel"); if(!sel) return;
+  sel.onchange=function(){
+    const v=sel.value;
+    if(v==="__custom"){ bkCat=""; bkCustomV=""; bkShowCustom(true); }
+    else { bkCat=v; bkCustomV=""; bkShowCustom(false); }
+  };
+  const ci=document.getElementById("bkCustomCat");
+  if(ci) ci.oninput=function(){ bkCustomV=ci.value.trim(); };
+  if(bkCustomV){ bkShowCustom(true); }
+}
+function bkCustOpen(){
+  let p=document.getElementById("bkCustPanel");
+  if(!p){ p=document.createElement("div"); p.id="bkCustPanel"; p.className="bkdetail"; document.body.appendChild(p); }
+  const u=bkUserCats();
+  const rowHtml=function(type){
+    const list=u[type]||[];
+    if(!list.length) return '<div class="bkempty" style="padding:10px 0;">还没有自定义'+(type==="exp"?"支出":"收入")+'分类</div>';
+    return list.map(function(n){ return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.05);"><span style="font-size:14.5px;">'+esc(n)+'</span><button type="button" class="mini" style="color:#F0705A;border-color:#5A3328;flex:0 0 auto;" data-delt="'+type+'" data-delc="'+attrEsc(n)+'">删除</button></div>'; }).join("");
+  };
+  p.innerHTML='<div class="bd"><div class="bd-head"><span style="font-size:15px;font-weight:800;">🛠 自定义分类管理</span><button type="button" class="bd-x" id="bkCustClose">✕</button></div>'
+    +'<div style="max-height:50vh;overflow:auto;padding-right:2px;">'
+    +'<p class="hint" style="margin:2px 0 8px;line-height:1.7;">这里管<b>你自己加的分类</b>（记账时选「✏️ 自定义新名称」输入的）。删掉后：下拉里不再出现，<b>已记的账目文字不受影响</b>。</p>'
+    +'<div class="rpt-sub" style="margin:4px 0 2px;">支出 · 自定义（'+(u.exp||[]).length+'）</div>'+rowHtml("exp")
+    +'<div class="rpt-sub" style="margin:14px 0 2px;">收入 · 自定义（'+(u.inc||[]).length+'）</div>'+rowHtml("inc")
+    +'</div>'
+    +'<div class="bd-ops" style="margin-top:10px;"><button type="button" class="btn ghost" id="bkCustDone" style="width:100%;">完成</button></div></div>';
+  p.classList.add("show");
+  p.onclick=function(ev){ if(ev.target===p) bkCustClose(); };
+  const cc=document.getElementById("bkCustClose"); if(cc) cc.onclick=bkCustClose;
+  const cd=document.getElementById("bkCustDone"); if(cd) cd.onclick=bkCustClose;
+  p.querySelectorAll("[data-delc]").forEach(function(b){ b.onclick=function(){
+    const t=b.dataset.delt, n=b.dataset.delc;
+    bkDelUserCat(t,n);
+    toast("已删除自定义分类「"+n+"」");
+    if(bkCat===n){ bkCat=""; }
+    renderBook();
+    bkCustOpen();
+  }; });
+}
+function bkCustClose(){ const p=document.getElementById("bkCustPanel"); if(p) p.classList.remove("show"); }
+
 /* ===== 记账 v3：多账本 ===== */
 function bkLedgers(){ return Array.isArray(state.ledgers)?state.ledgers:[]; }
 function bkCurId(){ const c=localStorage.getItem("bk_cur"); const l=bkLedgers().find(function(x){return x.id===c;}); return l?c:(bkLedgers()[0]?bkLedgers()[0].id:"main"); }
@@ -2389,6 +2470,7 @@ function bkDayLabel(d){
 /* 表单内存态 */
 let bkType=(localStorage.getItem("bk_type")==="inc")?"inc":"exp";
 let bkCat="", bkAmtV="", bkNoteV="", bkDateV=bkToday();
+let bkCustomV="";                 // 自定义分类输入（记完自动加入下拉）
 let bkPendImgs=[];               // [{dataURL}]
 let bkMonth=bkToday().slice(0,7);
 /* 首开预置示例（一次性） */
@@ -2451,6 +2533,18 @@ async function bkImgFor(p){
   if(v) bkIDBPut(p,v);
   return v;
 }
+/* ===== 记账 v4.1：传凭证 拍照/相册 菜单 ===== */
+const BK_ACTS_HTML='<div id="bkActs" class="bkacts hidden"><div class="bkacts-mask" data-close="1"></div><div class="bkacts-panel"><div class="bkacts-title">添加付款凭证</div><button type="button" id="bkActCam">📷 拍照</button><button type="button" id="bkActAlb">🖼 从相册选择（可多张）</button><button type="button" class="bkacts-cancel" data-close="1">取消</button><input type="file" id="bkCam" accept="image/*" capture="environment" style="display:none;"><input type="file" id="bkAlb" accept="image/*" multiple style="display:none;"></div></div>';
+function bkPickMenu(){ const a=document.getElementById("bkActs"); if(a) a.classList.remove("hidden"); }
+function bkBindActs(){
+  const a=document.getElementById("bkActs"); if(!a) return;
+  a.querySelectorAll("[data-close]").forEach(function(b){ b.onclick=function(){ a.classList.add("hidden"); }; });
+  const cam=document.getElementById("bkCam"), alb=document.getElementById("bkAlb");
+  const cp=document.getElementById("bkActCam"); if(cp) cp.onclick=function(){ a.classList.add("hidden"); if(cam) cam.click(); };
+  const ap=document.getElementById("bkActAlb"); if(ap) ap.onclick=function(){ a.classList.add("hidden"); if(alb) alb.click(); };
+  if(cam) cam.onchange=function(ev){ bkPick(ev); };
+  if(alb) alb.onchange=function(ev){ bkPick(ev); };
+}
 /* 图片压缩（最长边1280，JPEG 0.72） */
 function bkCompress(file,okCb,errCb){
   try{
@@ -2486,22 +2580,24 @@ function bkPick(ev){
 function bkUpdThumbs(){
   const t=document.getElementById("bkThumbs"); if(!t) return;
   let h=bkPendImgs.map((d,i)=>'<span style="position:relative;display:inline-block;"><img class="bkthumb" src="'+d.dataURL+'" alt="凭证'+(i+1)+'"><button type="button" class="bkdelx" data-ri="'+i+'">×</button></span>').join("");
-  if(bkPendImgs.length<BK_MAXIMG) h+='<label class="bkadd"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#9AA3AC" stroke-width="2.2" stroke-linecap="round"/></svg>传凭证<input type="file" id="bkFile" accept="image/jpeg,image/png,image/webp" style="display:none;" multiple></label>';
+  if(bkPendImgs.length<BK_MAXIMG) h+='<button type="button" class="bkadd" id="bkAddPic" aria-label="传凭证"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#9AA3AC" stroke-width="2.2" stroke-linecap="round"/></svg>传凭证</button>';
   t.innerHTML=h;
-  const f=document.getElementById("bkFile"); if(f) f.onchange=bkPick;
+  const p=document.getElementById("bkAddPic"); if(p) p.onclick=bkPickMenu;
   t.querySelectorAll(".bkdelx").forEach(b=>b.onclick=()=>{ bkPendImgs.splice(Number(b.dataset.ri),1); bkUpdThumbs(); });
 }
 function bkDoReset(){ bkType=(localStorage.getItem("bk_type")==="inc")?"inc":"exp"; bkCat=""; bkAmtV=""; bkNoteV=""; bkDateV=bkToday(); bkPendImgs=[]; renderBook(); toast("表单已清空"); }
 function bkDoSave(){
   const cents=Math.round((parseFloat(bkAmtV)||0)*100);
-  if(!bkCat){ toast("请先选一个分类"); return; }
+  const cat=((bkCustomV||bkCat)||"").trim();
+  if(!cat){ toast("请选分类，或选下拉里的「✏️ 自定义新名称」直接输入"); return; }
   if(!(cents>0)){ toast("金额要大于 0"); return; }
   if(bkPendImgs.length>BK_MAXIMG){ toast("凭证最多 "+BK_MAXIMG+" 张"); return; }
   const id="bk"+state.bookSeq+"_"+Date.now(); state.bookSeq++;
-  const it={id:id,t:bkType,cat:bkCat,cents:cents,date:bkDateV||bkToday(),note:bkNoteV.trim(),lg:bkCurId(),imgs:bkPendImgs.map(function(d,i){ return {p:"vouchers/"+id+"-"+i+".jpg"}; }),ts:Date.now()};
+  const it={id:id,t:bkType,cat:cat,cents:cents,date:bkDateV||bkToday(),note:bkNoteV.trim(),lg:bkCurId(),imgs:bkPendImgs.map(function(d,i){ return {p:"vouchers/"+id+"-"+i+".jpg"}; }),ts:Date.now()};
   state.book.push(it); save();
+  if(cat&&BK_CATS[it.t]&&!BK_CATS[it.t].includes(cat)) bkAddUserCat(it.t,cat);
   bkPendImgs.forEach(function(d,i){ const p=it.imgs[i].p; bkIDBPut(p,d.dataURL); bkGhPut(p,d.dataURL); });
-  bkAmtV=""; bkNoteV=""; bkPendImgs=[]; bkDateV=bkToday();
+  bkAmtV=""; bkNoteV=""; bkPendImgs=[]; bkDateV=bkToday(); bkCat=""; bkCustomV="";
   renderBook();
   toast(bkType==="exp"?"已记一笔支出 ✓":"已记一笔收入 ✓");
 }
@@ -2638,7 +2734,8 @@ function bookBody(){
   return '<div class="card">'
     +'<div class="bkTitle"><h3 style="margin:0;">💰 记账</h3><span class="bk-bal" style="text-align:right;">凭证存本机 + 云端（GitHub 同步），报表页可导出备份包存坚果云</span></div>'
     +'<div class="seg" id="bkTypeSeg" style="margin-top:10px;"><button data-t="exp"'+(bkType==="exp"?" class=\"active\"":"")+'>支&nbsp;出</button><button data-t="inc"'+(bkType==="inc"?" class=\"active\"":"")+'>收&nbsp;入</button></div>'
-    +'<div class="chiprow" id="bkChips">'+BK_CATS[bkType].map(function(c){ return '<button type="button" class="bkchip'+(bkCat===c?" on":"")+'" data-c="'+c+'">'+c+'</button>'; }).join("")+'</div>'
+    +'<div class="bkline"><label style="flex:0 0 auto;">分类</label><select id="bkCatSel" class="bkcatsel">'+bkCatOptions(bkType)+'</select><button type="button" class="mini" id="bkCatMgr" title="整理自定义分类" style="min-height:42px;flex:0 0 auto;">🛠</button></div>'
+    +'<div class="bkline" id="bkCustomWrap" style="display:none;"><label style="flex:0 0 auto;color:#D8A657;">✏️ 新名</label><input type="text" id="bkCustomCat" class="bknote" maxlength="12" placeholder="如：体检费 —— 记完自动加入下拉，可点 🛠 删除" value="'+esc(bkCustomV)+'"></div>'
     +'<div class="bkline"><label>金额</label><span style="font-size:22px;font-weight:800;color:var(--muted);">¥</span><input type="number" inputmode="decimal" min="0" step="0.01" class="bknum" id="bkAmt" placeholder="0.00" value="'+esc(bkAmtV)+'"></div>'
     +'<div class="bkline"><label>日期</label><input type="date" class="bkdate" id="bkDate" value="'+esc(bkDateV)+'"></div>'
     +'<div class="bkline"><label>备注</label><input type="text" class="bknote" id="bkNote" maxlength="60" placeholder="可写：这钱花在哪儿 / 具体干什么 / 交到几月" value="'+esc(bkNoteV)+'"></div>'
@@ -2652,7 +2749,8 @@ function bookBody(){
     +'</div></div>'
     +'<div class="bkstat"><div class="sc"><div class="sl">支出</div><div class="sv c-exp">¥'+bkFmtC(ex)+'</div></div><div class="sc"><div class="sl">收入</div><div class="sv c-inc">¥'+bkFmtC(in2)+'</div></div><div class="sc"><div class="sl">结余</div><div class="sv '+(in2-ex<0?"c-exp":"c-bal")+'">'+(in2-ex<0?"-":"")+"¥"+bkFmtC(Math.abs(in2-ex))+'</div></div></div>'
     +catHtml+'</div>'
-    +'<div class="card"><h4 style="margin:2px 0 8px;">流水</h4><div id="bkList">'+listHtml+'</div></div>';
+    +'<div class="card"><h4 style="margin:2px 0 8px;">流水</h4><div id="bkList">'+listHtml+'</div></div>'
+    +BK_ACTS_HTML;
 }
 /* 导出备份包（zip：账目 json + 全部凭证图） */
 function bkCrcTbl(){ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } return t; }
@@ -2866,7 +2964,8 @@ function renderBook(){
 }
 function bkBindBook(){
   const t0=document.getElementById("bkTypeSeg"); if(t0) t0.querySelectorAll("button").forEach(function(b){ b.onclick=()=>{ bkType=b.dataset.t; bkCat=""; bkAmtV=document.getElementById("bkAmt")?document.getElementById("bkAmt").value:""; bkNoteV=document.getElementById("bkNote")?document.getElementById("bkNote").value:""; bkDateV=document.getElementById("bkDate")?document.getElementById("bkDate").value:""; renderBook(); }; });
-  const c0=document.getElementById("bkChips"); if(c0) c0.querySelectorAll(".bkchip").forEach(function(b){ b.onclick=()=>{ bkCat=b.dataset.c; c0.querySelectorAll(".bkchip").forEach(function(x){ x.classList.toggle("on", x.dataset.c===bkCat); }); }; });
+  bkBindSel();
+  const mg=document.getElementById("bkCatMgr"); if(mg) mg.onclick=bkCustOpen;
   const a0=document.getElementById("bkAmt"); if(a0) a0.oninput=()=>{ bkAmtV=a0.value; };
   const d0=document.getElementById("bkDate"); if(d0) d0.onchange=()=>{ bkDateV=d0.value; };
   const n0=document.getElementById("bkNote"); if(n0) n0.oninput=()=>{ bkNoteV=n0.value; };
@@ -2876,6 +2975,7 @@ function bkBindBook(){
   document.querySelectorAll(".bkmv").forEach(function(b){ b.onclick=()=>bkMonthShift(Number(b.dataset.mv)); });
   const nw=document.getElementById("bkNow"); if(nw) nw.onclick=()=>{ bkMonth=bkToday().slice(0,7); renderBook(); };
   const dd=document.getElementById("bkDelDemo"); if(dd) dd.onclick=bkDelDemo;
+  bkBindActs();
   bkUpdThumbs();
 }
 function bkBindReport(){
