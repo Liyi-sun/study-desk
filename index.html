@@ -284,6 +284,7 @@ details[open] summary::before{content:"▾ ";}
 .bkacts .bkacts-panel button.bkacts-cancel{background:none;border-color:transparent;color:var(--muted);min-height:44px;margin-bottom:2px;}
 .bkcatsel{flex:1;min-width:0;background:#242B33;border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:16px;font-family:inherit;min-height:42px;padding:0 10px;box-sizing:border-box;}
 .bkcatsel option{background:#1D232A;color:var(--text);}
+.bkorig{position:absolute;left:-7px;top:-7px;font-size:9.5px;line-height:1;background:#3A4450;color:#E9E4DC;border-radius:8px;padding:3px 6px;z-index:2;font-style:normal;}
 #bkCustPanel{z-index:95;}
 .bkadd svg{display:block;}
 .bkdelx{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:#E0605E;color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
@@ -2471,6 +2472,7 @@ function bkDayLabel(d){
 let bkType=(localStorage.getItem("bk_type")==="inc")?"inc":"exp";
 let bkCat="", bkAmtV="", bkNoteV="", bkDateV=bkToday();
 let bkCustomV="";                 // 自定义分类输入（记完自动加入下拉）
+let bkEditId=null;                    // 正在修改的账目 id（null=记新账）
 let bkPendImgs=[];               // [{dataURL}]
 let bkMonth=bkToday().slice(0,7);
 /* 首开预置示例（一次性） */
@@ -2579,27 +2581,58 @@ function bkPick(ev){
 }
 function bkUpdThumbs(){
   const t=document.getElementById("bkThumbs"); if(!t) return;
-  let h=bkPendImgs.map((d,i)=>'<span style="position:relative;display:inline-block;"><img class="bkthumb" src="'+d.dataURL+'" alt="凭证'+(i+1)+'"><button type="button" class="bkdelx" data-ri="'+i+'">×</button></span>').join("");
+  let h=bkPendImgs.map((d,i)=>'<span style="position:relative;display:inline-block;"><img class="bkthumb" style="background:var(--card2);" src="'+d.dataURL+'" alt="凭证'+(i+1)+'">'+(d._keep?'<i class="bkorig">原</i>':'')+'<button type="button" class="bkdelx" data-ri="'+i+'">×</button></span>').join("");
   if(bkPendImgs.length<BK_MAXIMG) h+='<button type="button" class="bkadd" id="bkAddPic" aria-label="传凭证"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#9AA3AC" stroke-width="2.2" stroke-linecap="round"/></svg>传凭证</button>';
   t.innerHTML=h;
   const p=document.getElementById("bkAddPic"); if(p) p.onclick=bkPickMenu;
   t.querySelectorAll(".bkdelx").forEach(b=>b.onclick=()=>{ bkPendImgs.splice(Number(b.dataset.ri),1); bkUpdThumbs(); });
 }
-function bkDoReset(){ bkType=(localStorage.getItem("bk_type")==="inc")?"inc":"exp"; bkCat=""; bkAmtV=""; bkNoteV=""; bkDateV=bkToday(); bkPendImgs=[]; renderBook(); toast("表单已清空"); }
+function bkDoReset(){ bkType=(localStorage.getItem("bk_type")==="inc")?"inc":"exp"; bkCat=""; bkCustomV=""; bkEditId=null; bkAmtV=""; bkNoteV=""; bkDateV=bkToday(); bkPendImgs=[]; renderBook(); toast("表单已清空"); }
+const BK_PH="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+async function bkStartEdit(id){
+  const it=state.book.find(function(x){ return x.id===id; }); if(!it) return;
+  if(bkView!=="book"){ bkView="book"; localStorage.setItem("bk_view","book"); }
+  bkEditId=id; bkType=it.t;
+  bkAmtV=(it.cents/100).toFixed(2); bkDateV=it.date||bkToday(); bkNoteV=it.note||"";
+  const fixed=BK_CATS[it.t]||[]; const user=(bkUserCats()[it.t]||[]);
+  if(fixed.includes(it.cat)||user.includes(it.cat)){ bkCat=it.cat; bkCustomV=""; }
+  else { bkCat=it.cat; bkCustomV=it.cat; }
+  bkPendImgs=[];
+  if(it.imgs&&it.imgs.length){
+    for(let i=0;i<it.imgs.length;i++){
+      let v=null; try{ v=await bkImgFor(it.imgs[i].p); }catch(e){}
+      bkPendImgs.push({p:it.imgs[i].p,dataURL:(v||BK_PH),_keep:1});
+    }
+  }
+  renderBook();
+  toast("编辑模式：改好后点「保存修改」，不想改了点「取消修改」");
+}
 function bkDoSave(){
   const cents=Math.round((parseFloat(bkAmtV)||0)*100);
   const cat=((bkCustomV||bkCat)||"").trim();
   if(!cat){ toast("请选分类，或选下拉里的「✏️ 自定义新名称」直接输入"); return; }
   if(!(cents>0)){ toast("金额要大于 0"); return; }
   if(bkPendImgs.length>BK_MAXIMG){ toast("凭证最多 "+BK_MAXIMG+" 张"); return; }
-  const id="bk"+state.bookSeq+"_"+Date.now(); state.bookSeq++;
-  const it={id:id,t:bkType,cat:cat,cents:cents,date:bkDateV||bkToday(),note:bkNoteV.trim(),lg:bkCurId(),imgs:bkPendImgs.map(function(d,i){ return {p:"vouchers/"+id+"-"+i+".jpg"}; }),ts:Date.now()};
-  state.book.push(it); save();
-  if(cat&&BK_CATS[it.t]&&!BK_CATS[it.t].includes(cat)) bkAddUserCat(it.t,cat);
-  bkPendImgs.forEach(function(d,i){ const p=it.imgs[i].p; bkIDBPut(p,d.dataURL); bkGhPut(p,d.dataURL); });
-  bkAmtV=""; bkNoteV=""; bkPendImgs=[]; bkDateV=bkToday(); bkCat=""; bkCustomV="";
+  const date=bkDateV||bkToday();
+  const mkImgs=function(idBase){ return bkPendImgs.map(function(d,i){ return d._keep? {p:d.p} : {p:"vouchers/"+idBase+"-"+i+".jpg"}; }); };
+  const upNew=function(it2){ bkPendImgs.forEach(function(d,i){ if(d._keep) return; bkIDBPut(it2.imgs[i].p,d.dataURL); bkGhPut(it2.imgs[i].p,d.dataURL); }); };
+  if(bkEditId){
+    const ex=state.book.find(function(x){ return x.id===bkEditId; });
+    if(!ex){ toast("原记录已不存在（可能已删）"); bkEditId=null; renderBook(); return; }
+    ex.t=bkType; ex.cat=cat; ex.cents=cents; ex.date=date; ex.note=bkNoteV.trim(); ex.ts=Date.now();
+    ex.imgs=mkImgs(ex.id);
+    save(); upNew(ex);
+    toast("已保存修改 ✓");
+  } else {
+    const id="bk"+state.bookSeq+"_"+Date.now(); state.bookSeq++;
+    const it={id:id,t:bkType,cat:cat,cents:cents,date:date,note:bkNoteV.trim(),lg:bkCurId(),imgs:mkImgs(id),ts:Date.now()};
+    state.book.push(it); save();
+    if(cat&&BK_CATS[it.t]&&!BK_CATS[it.t].includes(cat)) bkAddUserCat(it.t,cat);
+    upNew(it);
+    toast(bkType==="exp"?"已记一笔支出 ✓":"已记一笔收入 ✓");
+  }
+  bkEditId=null; bkCat=""; bkCustomV=""; bkAmtV=""; bkNoteV=""; bkPendImgs=[]; bkDateV=bkToday();
   renderBook();
-  toast(bkType==="exp"?"已记一笔支出 ✓":"已记一笔收入 ✓");
 }
 function bkDelDemo(){ state.book=state.book.filter(function(x){ return !x.demo; }); save(); renderBook(); toast("示例数据已清空"); }
 function bkMonthShift(d){
@@ -2618,11 +2651,12 @@ function bkShow(id){
     +'<div class="bd-amt '+(isE?"c-exp":"c-inc")+'">'+(isE?"-":"+")+"¥"+bkFmtC(it.cents)+'</div>'
     +'<div class="bd-meta">📅 '+esc(it.date)+'<br>'+(it.note?("📝 "+esc(it.note)+"<br>"):"")+'<span style="color:#9AA3AC;">'+(it.imgs&&it.imgs.length?("共 "+it.imgs.length+" 张付款凭证"):"未传凭证")+'</span></div>'
     +'<div class="bd-imgs">'+((it.imgs&&it.imgs.length)?it.imgs.map(function(g,i){ return '<div class="bd-load" id="bki_'+id+'_'+i+'">凭证 '+(i+1)+' 加载中…</div>'; }).join(""):'')+'</div>'
-    +'<div class="bd-ops"><button type="button" class="btn danger" id="bkDelBtn" data-a="0">删除这条</button></div></div>';
+    +'<div class="bd-ops"><button type="button" class="btn ghost" id="bkEditBtn">✏️ 编辑这条</button><button type="button" class="btn danger" id="bkDelBtn" data-a="0">删除这条</button></div></div>';
   d.classList.add("show");
   if(it.imgs) it.imgs.forEach(function(g,i){ const box=document.getElementById("bki_"+id+"_"+i); if(box) bkShowImg(g.p,box); });
   const cx=document.getElementById("bkDClose"); if(cx) cx.onclick=()=>d.classList.remove("show");
   d.onclick=(ev)=>{ if(ev.target===d) d.classList.remove("show"); };
+  const eb2=document.getElementById("bkEditBtn"); if(eb2) eb2.onclick=()=>{ d.classList.remove("show"); bkStartEdit(id); };
   const db=document.getElementById("bkDelBtn");
   if(db) db.onclick=()=>{
     if(db.dataset.a==="0"){ db.dataset.a="1"; db.textContent="再点一次，确认删除"; db.style.color="#fff"; db.style.background="#E0605E"; db.style.borderColor="#E0605E"; }
@@ -2733,6 +2767,7 @@ function bookBody(){
   }
   return '<div class="card">'
     +'<div class="bkTitle"><h3 style="margin:0;">💰 记账</h3><span class="bk-bal" style="text-align:right;">凭证存本机 + 云端（GitHub 同步），报表页可导出备份包存坚果云</span></div>'
+    +(bkEditId?'<div class="interp" style="margin:10px 0 0;border-color:#E8A33D;line-height:1.7;"><b>✏️ 正在修改</b> 原记录：'+esc((state.book.find(function(x){ return x.id===bkEditId; })||{}).cat||'')+' · ¥'+bkFmtC((state.book.find(function(x){ return x.id===bkEditId; })||{}).cents||0)+'（'+(bkType==="exp"?"支出":"收入")+'）—— 改好点「保存修改」，凭证可删可补</div>':'')
     +'<div class="seg" id="bkTypeSeg" style="margin-top:10px;"><button data-t="exp"'+(bkType==="exp"?" class=\"active\"":"")+'>支&nbsp;出</button><button data-t="inc"'+(bkType==="inc"?" class=\"active\"":"")+'>收&nbsp;入</button></div>'
     +'<div class="bkline"><label style="flex:0 0 auto;">分类</label><select id="bkCatSel" class="bkcatsel">'+bkCatOptions(bkType)+'</select><button type="button" class="mini" id="bkCatMgr" title="整理自定义分类" style="min-height:42px;flex:0 0 auto;">🛠</button></div>'
     +'<div class="bkline" id="bkCustomWrap" style="display:none;"><label style="flex:0 0 auto;color:#D8A657;">✏️ 新名</label><input type="text" id="bkCustomCat" class="bknote" maxlength="12" placeholder="如：体检费 —— 记完自动加入下拉，可点 🛠 删除" value="'+esc(bkCustomV)+'"></div>'
@@ -2741,7 +2776,7 @@ function bookBody(){
     +'<div class="bkline"><label>备注</label><input type="text" class="bknote" id="bkNote" maxlength="60" placeholder="可写：这钱花在哪儿 / 具体干什么 / 交到几月" value="'+esc(bkNoteV)+'"></div>'
     +'<div class="bkline"><label>凭证</label><div class="bkthumbs" id="bkThumbs"></div></div>'
     +'<div style="font-size:11.5px;color:var(--muted);">最多 '+BK_MAXIMG+' 张，付款截图/收据照片都行（自动压缩，本机缓存 + 云端各一份）</div>'
-    +'<div class="btnrow" style="margin-top:12px;"><button class="btn" id="bkSave">✓ 记一笔</button><button type="button" class="mini" id="bkReset" style="margin-left:8px;">清空表单</button></div>'
+    +'<div class="btnrow" style="margin-top:12px;"><button class="btn" id="bkSave">'+(bkEditId?'✓ 保存修改':'✓ 记一笔')+'</button><button type="button" class="mini" id="bkReset" style="margin-left:8px;">'+(bkEditId?'✕ 取消修改':'清空表单')+'</button></div>'
     +'</div>'
     +'<div class="card"><div class="bkmonth"><div class="mv"><button type="button" class="bkmv" data-mv="-1">‹</button><button type="button" class="bkmv" data-mv="1">›</button></div><h4>'+monthLabel+'</h4><div style="display:flex;gap:6px;">'
     +(bkMonth!==bkToday().slice(0,7)?'<button type="button" class="bkmini" id="bkNow">回本月</button>':'')
@@ -2963,7 +2998,7 @@ function renderBook(){
   if(isRpt){ bkBindReport(); } else { bkBindBook(); }
 }
 function bkBindBook(){
-  const t0=document.getElementById("bkTypeSeg"); if(t0) t0.querySelectorAll("button").forEach(function(b){ b.onclick=()=>{ bkType=b.dataset.t; bkCat=""; bkAmtV=document.getElementById("bkAmt")?document.getElementById("bkAmt").value:""; bkNoteV=document.getElementById("bkNote")?document.getElementById("bkNote").value:""; bkDateV=document.getElementById("bkDate")?document.getElementById("bkDate").value:""; renderBook(); }; });
+  const t0=document.getElementById("bkTypeSeg"); if(t0) t0.querySelectorAll("button").forEach(function(b){ b.onclick=()=>{ bkType=b.dataset.t; bkCat=""; bkCustomV=""; bkAmtV=document.getElementById("bkAmt")?document.getElementById("bkAmt").value:""; bkNoteV=document.getElementById("bkNote")?document.getElementById("bkNote").value:""; bkDateV=document.getElementById("bkDate")?document.getElementById("bkDate").value:""; renderBook(); }; });
   bkBindSel();
   const mg=document.getElementById("bkCatMgr"); if(mg) mg.onclick=bkCustOpen;
   const a0=document.getElementById("bkAmt"); if(a0) a0.oninput=()=>{ bkAmtV=a0.value; };
