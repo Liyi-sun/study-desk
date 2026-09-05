@@ -409,16 +409,21 @@ details[open] summary::before{content:"▾ ";}
           </div>
           <iframe id="noiseFrame" src="https://www.ppbzy.com/embed" height="340" frameborder="0" allow="autoplay" loading="lazy" style="border-radius:16px;border:none;width:100%;display:block;"></iframe>
           <div id="noiseLegacy" style="display:none;border:1px solid var(--line);border-radius:16px;padding:14px 14px 16px;text-align:center;">
-            <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:#C9C4BC;">🎧 内置白噪音（老设备兼容版）</div>
-            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
-              <button class="mini" data-nk="rain" style="min-width:64px;">🌧 雨声</button>
-              <button class="mini" data-nk="wave" style="min-width:64px;">🌊 海浪</button>
-              <button class="mini" data-nk="fire" style="min-width:64px;">🔥 篝火</button>
-              <button class="mini" data-nk="wind" style="min-width:64px;">🌬 风声</button>
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:#C9C4BC;">🎵 古典专注乐 · 内置（老设备兼容版）</div>
+            <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
+              <button class="mini" data-tr="0">♪ 卡农</button>
+              <button class="mini" data-tr="1">G弦咏叹调</button>
+              <button class="mini" data-tr="2">夜曲</button>
+              <button class="mini" data-tr="3">悲怆·Ⅱ</button>
+              <button class="mini" data-tr="4">C大调前奏</button>
+              <button class="mini" data-tr="5">月光</button>
             </div>
-            <button class="btn" id="noisePlayBtn" style="min-width:110px;">▶ 播放</button>
-            <div style="margin-top:8px;font-size:12px;color:#8A8F98;">音量 <input type="range" id="noiseVol" min="0" max="100" value="60" style="vertical-align:middle;width:110px;"></div>
-            <div style="margin-top:6px;font-size:11px;color:#6B7280;">本机合成音效 · 无需联网 · 不耗流量</div>
+            <div style="margin-bottom:10px;">
+              <button class="btn" id="clPlay" style="min-width:110px;">▶ 播放</button>
+              <span id="clNow" style="margin-left:10px;font-size:12px;color:#C9C4BC;">未播放</span>
+            </div>
+            <div style="margin-top:4px;font-size:12px;color:#8A8F98;">音量 <input type="range" id="clVol" min="0" max="100" value="70" style="vertical-align:middle;width:110px;"></div>
+            <div style="margin-top:6px;font-size:11px;color:#6B7280;">真人演奏 · 仅供个人学习 · 播完自动切下一首</div>
           </div>
           <div class="hint" id="noiseHint" style="margin-top:6px;">48+ 种白噪音（雨声/海浪/篝火/森林…），主题跟随系统 · 来源：泡泡白噪音 ppbzy.com</div>
         </div>
@@ -1564,63 +1569,62 @@ async function loadQuote(force){
   if(!legacyEl) return;
   var modernOK=true;
   try{ eval("var __t=1??2"); }catch(e){ modernOK=false; }  // ?? 语法检测：老 Safari 抛错
-  if(modernOK) return;  // 新浏览器：保留原版 iframe
-  // 老浏览器：隐藏 iframe/尺寸切换，显示内置播放器
+  if(modernOK) return;  // 新浏览器：保留原版 ppbzy iframe
+  // 老浏览器：隐藏 iframe，显示内置古典播放器
   if(frameEl) frameEl.style.display="none";
   if(segEl) segEl.style.display="none";
   if(hintEl) hintEl.style.display="none";
   legacyEl.style.display="block";
-  var AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC){ legacyEl.innerHTML='<div style="font-size:12px;color:#8A8F98;">此设备不支持音频播放</div>'; return; }
-  var ctx=null, srcNode=null, isPlaying=false, curKind="rain";
-  var btn=$("#noisePlayBtn"), vol=$("#noiseVol");
-  if(!btn||!vol) return;
-  function makeNoiseBuffer(kind, seconds){
-    var sr=ctx.sampleRate, len=Math.floor(sr*(seconds||8));
-    var buf=ctx.createBuffer(1, len, sr), data=buf.getChannelData(0);
-    var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-    var last=0;
-    for(var i=0;i<len;i++){
-      var white=Math.random()*2-1;
-      if(kind==="white"){ data[i]=white*0.4; continue; }
-      if(kind==="pink"){ // 粉噪 ≈ 雨声
-        b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
-        b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
-        b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
-        data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.11; b6=white*0.115926;
-      } else if(kind==="brown"){ // 棕噪 ≈ 海浪低沉
-        b0=(b0+0.02*white)/1.02; data[i]=b0*3.5; last=b0;
-      } else if(kind==="fire"){ // 白噪低通 + 低频起伏 ≈ 篝火
-        last=last*0.96+white*0.12; data[i]=last; 
-        if(Math.random()<0.006) data[i]=data[i]+white*0.5; // 偶发爆裂声
-      }
-    }
-    return buf;
+  // 曲目列表（真人演奏公版/自行下载，仅供个人学习）
+  var TRACKS=[
+    {n:"♪ 卡农（帕赫贝尔）", f:"music/01-canon.m4a"},
+    {n:"♪ G弦上的咏叹调（巴赫）", f:"music/02-air-on-g-string.m4a"},
+    {n:"♪ 夜曲 Op.9 No.2（肖邦）", f:"music/03-nocturne.m4a"},
+    {n:"♪ 悲怆奏鸣曲·第二乐章（贝多芬）", f:"music/04-pathetique2.m4a"},
+    {n:"♪ C大调前奏曲（巴赫）", f:"music/05-prelude-c.m4a"},
+    {n:"♪ 月光·Clair de Lune（德彪西）", f:"music/06-clair-de-lune.m4a"}
+  ];
+  var audio=new Audio();
+  audio.preload="none";               // 不预载，点播才下（省流量）
+  var idx=0, playing=false;
+  var playBtn=$("#clPlay"), nowEl=$("#clNow"), volEl=$("#clVol");
+  if(!playBtn) return;
+  function btns(){ return legacyEl.querySelectorAll("button[data-tr]"); }
+  function setNow(){
+    if(nowEl) nowEl.textContent = playing ? ("正在播放: "+TRACKS[idx].n) : TRACKS[idx].n+"（未播放）";
   }
-  function kindToBuf(k){ return k==="wave"?"brown":(k==="rain"?"pink":(k==="fire"?"fire":"white")); }
-  function play(){
-    if(!ctx){ ctx=new AC(); }
-    if(ctx.state==="suspended"){ ctx.resume(); }
-    stopSrc();
-    var b=makeNoiseBuffer(kindToBuf(curKind));
-    srcNode=ctx.createBufferSource(); srcNode.buffer=b; srcNode.loop=true;
-    var g=ctx.createGain(); g.gain.value=(vol.value||60)/100;
-    srcNode.connect(g); g.connect(ctx.destination);
-    srcNode.start(); isPlaying=true;
-    btn.textContent="⏸ 暂停";
+  function highlight(){
+    var bs=btns();
+    for(var i=0;i<bs.length;i++){ bs[i].style.outline = (i===idx) ? "2px solid #E8A33D" : "none"; }
   }
-  function stopSrc(){ if(srcNode){ try{srcNode.stop();}catch(e){} srcNode=null; } }
-  function stop(){ stopSrc(); isPlaying=false; btn.textContent="▶ 播放"; }
-  btn.onclick=function(){ isPlaying?stop():play(); };
-  vol.oninput=function(){};  // 音量实时改由播放时读取，不重连
-  document.querySelectorAll("#noiseLegacy button[data-nk]").forEach(function(b){
-    b.onclick=function(){ curKind=b.dataset.nk;
-      document.querySelectorAll("#noiseLegacy button[data-nk]").forEach(function(x){ x.style.outline=x===b?"2px solid #E8A33D":"none"; });
-      if(isPlaying) play(); };
-  });
-  var fk=document.querySelector('#noiseLegacy button[data-nk="rain"]'); if(fk) fk.style.outline="2px solid #E8A33D";
-  // 音量滑杆生效：暂停/播放切换时生效即可（简单可靠）
-  vol.onchange=function(){ if(isPlaying) play(); };
+  function playIdx(i){
+    idx=i;
+    audio.src=TRACKS[i].f;
+    if(volEl) audio.volume=(volEl.value||70)/100;
+    var pr=audio.play();
+    if(pr && pr.catch){ pr.catch(function(){}); }  // iOS 自动播放限制由点击手势兜底
+    playing=true;
+    if(playBtn) playBtn.textContent="⏸ 暂停";
+    setNow(); highlight();
+  }
+  playBtn.onclick=function(){
+    if(playing){ audio.pause(); playing=false; playBtn.textContent="▶ 播放"; setNow(); }
+    else if(audio.getAttribute("src")){ audio.volume=(volEl.value||70)/100; var pr=audio.play(); if(pr&&pr.catch){pr.catch(function(){});} playing=true; playBtn.textContent="⏸ 暂停"; setNow(); }
+    else { playIdx(0); }
+  };
+  audio.onended=function(){ playIdx((idx+1)%TRACKS.length); };   // 自动连播
+  audio.onerror=function(){ if(nowEl) nowEl.textContent="播放出错（网络或文件问题），试试其它曲目"; };
+  if(volEl){ volEl.oninput=function(){ if(audio) audio.volume=(volEl.value||70)/100; }; }
+  var bs=btns();
+  for(var j=0;j<bs.length;j++){
+    (function(k){
+      bs[k].onclick=function(){
+        if(k===idx && playing){ audio.pause(); playing=false; if(playBtn) playBtn.textContent="▶ 播放"; setNow(); }
+        else { playIdx(k); }
+      };
+    })(j);
+  }
+  setNow(); highlight();
 })();
 
 /* 首页渲染 */
