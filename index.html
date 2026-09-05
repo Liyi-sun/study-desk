@@ -1586,6 +1586,7 @@ async function loadQuote(force){
   ];
   var audio=new Audio();
   audio.preload="none";               // 不预载，点播才下（省流量）
+  try{ legacyEl.appendChild(audio); }catch(e){}   // 挂 DOM：iOS 个别版本非 DOM audio 不播
   var idx=0, playing=false;
   var playBtn=$("#clPlay"), nowEl=$("#clNow"), volEl=$("#clVol");
   if(!playBtn) return;
@@ -1600,20 +1601,21 @@ async function loadQuote(force){
   function playIdx(i){
     idx=i;
     audio.src=TRACKS[i].f;
+    audio.load();                                  // iOS：先 load 再 play 更稳
     if(volEl) audio.volume=(volEl.value||70)/100;
     var pr=audio.play();
-    if(pr && pr.catch){ pr.catch(function(){}); }  // iOS 自动播放限制由点击手势兜底
+    if(pr && pr.catch){ pr.catch(function(){ if(nowEl) nowEl.textContent="播放被拦，请再点一次播放试试"; }); }
     playing=true;
     if(playBtn) playBtn.textContent="⏸ 暂停";
     setNow(); highlight();
   }
   playBtn.onclick=function(){
     if(playing){ audio.pause(); playing=false; playBtn.textContent="▶ 播放"; setNow(); }
-    else if(audio.getAttribute("src")){ audio.volume=(volEl.value||70)/100; var pr=audio.play(); if(pr&&pr.catch){pr.catch(function(){});} playing=true; playBtn.textContent="⏸ 暂停"; setNow(); }
+    else if(audio.getAttribute("src")){ audio.volume=(volEl.value||70)/100; var pr=audio.play(); if(pr&&pr.catch){pr.catch(function(){ if(nowEl) nowEl.textContent="播放被拦，请再点一次播放试试"; });} playing=true; playBtn.textContent="⏸ 暂停"; setNow(); }
     else { playIdx(0); }
   };
   audio.onended=function(){ playIdx((idx+1)%TRACKS.length); };   // 自动连播
-  audio.onerror=function(){ if(nowEl) nowEl.textContent="播放出错（网络或文件问题），试试其它曲目"; };
+  audio.onerror=function(){ if(nowEl) nowEl.textContent="播放出错(代码"+audio.error.code+")，试试其它曲目"; };
   if(volEl){ volEl.oninput=function(){ if(audio) audio.volume=(volEl.value||70)/100; }; }
   var bs=btns();
   for(var j=0;j<bs.length;j++){
