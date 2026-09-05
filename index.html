@@ -408,7 +408,19 @@ details[open] summary::before{content:"▾ ";}
             <button data-h="560">竖向</button>
           </div>
           <iframe id="noiseFrame" src="https://www.ppbzy.com/embed" height="340" frameborder="0" allow="autoplay" loading="lazy" style="border-radius:16px;border:none;width:100%;display:block;"></iframe>
-          <div class="hint" style="margin-top:6px;">48+ 种白噪音（雨声/海浪/篝火/森林…），主题跟随系统 · 来源：泡泡白噪音 ppbzy.com</div>
+          <div id="noiseLegacy" style="display:none;border:1px solid var(--line);border-radius:16px;padding:14px 14px 16px;text-align:center;">
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:#C9C4BC;">🎧 内置白噪音（老设备兼容版）</div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;">
+              <button class="mini" data-nk="rain" style="min-width:64px;">🌧 雨声</button>
+              <button class="mini" data-nk="wave" style="min-width:64px;">🌊 海浪</button>
+              <button class="mini" data-nk="fire" style="min-width:64px;">🔥 篝火</button>
+              <button class="mini" data-nk="wind" style="min-width:64px;">🌬 风声</button>
+            </div>
+            <button class="btn" id="noisePlayBtn" style="min-width:110px;">▶ 播放</button>
+            <div style="margin-top:8px;font-size:12px;color:#8A8F98;">音量 <input type="range" id="noiseVol" min="0" max="100" value="60" style="vertical-align:middle;width:110px;"></div>
+            <div style="margin-top:6px;font-size:11px;color:#6B7280;">本机合成音效 · 无需联网 · 不耗流量</div>
+          </div>
+          <div class="hint" id="noiseHint" style="margin-top:6px;">48+ 种白噪音（雨声/海浪/篝火/森林…），主题跟随系统 · 来源：泡泡白噪音 ppbzy.com</div>
         </div>
       </section>
 
@@ -1545,6 +1557,70 @@ async function loadQuote(force){
     fr.style.height=b.dataset.h+"px";
     seg.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));
   });
+})();
+/* 白噪音降级：老浏览器(Safari<13.1)跑不动 ppbzy 现代前端 → 切内置合成版 */
+(function(){
+  var legacyEl=$("#noiseLegacy"), frameEl=$("#noiseFrame"), segEl=$("#noiseSeg"), hintEl=$("#noiseHint");
+  if(!legacyEl) return;
+  var modernOK=true;
+  try{ eval("var __t=1??2"); }catch(e){ modernOK=false; }  // ?? 语法检测：老 Safari 抛错
+  if(modernOK) return;  // 新浏览器：保留原版 iframe
+  // 老浏览器：隐藏 iframe/尺寸切换，显示内置播放器
+  if(frameEl) frameEl.style.display="none";
+  if(segEl) segEl.style.display="none";
+  if(hintEl) hintEl.style.display="none";
+  legacyEl.style.display="block";
+  var AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC){ legacyEl.innerHTML='<div style="font-size:12px;color:#8A8F98;">此设备不支持音频播放</div>'; return; }
+  var ctx=null, srcNode=null, isPlaying=false, curKind="rain";
+  var btn=$("#noisePlayBtn"), vol=$("#noiseVol");
+  if(!btn||!vol) return;
+  function makeNoiseBuffer(kind, seconds){
+    var sr=ctx.sampleRate, len=Math.floor(sr*(seconds||8));
+    var buf=ctx.createBuffer(1, len, sr), data=buf.getChannelData(0);
+    var b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    var last=0;
+    for(var i=0;i<len;i++){
+      var white=Math.random()*2-1;
+      if(kind==="white"){ data[i]=white*0.4; continue; }
+      if(kind==="pink"){ // 粉噪 ≈ 雨声
+        b0=0.99886*b0+white*0.0555179; b1=0.99332*b1+white*0.0750759;
+        b2=0.96900*b2+white*0.1538520; b3=0.86650*b3+white*0.3104856;
+        b4=0.55000*b4+white*0.5329522; b5=-0.7616*b5-white*0.0168980;
+        data[i]=(b0+b1+b2+b3+b4+b5+b6+white*0.5362)*0.11; b6=white*0.115926;
+      } else if(kind==="brown"){ // 棕噪 ≈ 海浪低沉
+        b0=(b0+0.02*white)/1.02; data[i]=b0*3.5; last=b0;
+      } else if(kind==="fire"){ // 白噪低通 + 低频起伏 ≈ 篝火
+        last=last*0.96+white*0.12; data[i]=last; 
+        if(Math.random()<0.006) data[i]=data[i]+white*0.5; // 偶发爆裂声
+      }
+    }
+    return buf;
+  }
+  function kindToBuf(k){ return k==="wave"?"brown":(k==="rain"?"pink":(k==="fire"?"fire":"white")); }
+  function play(){
+    if(!ctx){ ctx=new AC(); }
+    if(ctx.state==="suspended"){ ctx.resume(); }
+    stopSrc();
+    var b=makeNoiseBuffer(kindToBuf(curKind));
+    srcNode=ctx.createBufferSource(); srcNode.buffer=b; srcNode.loop=true;
+    var g=ctx.createGain(); g.gain.value=(vol.value||60)/100;
+    srcNode.connect(g); g.connect(ctx.destination);
+    srcNode.start(); isPlaying=true;
+    btn.textContent="⏸ 暂停";
+  }
+  function stopSrc(){ if(srcNode){ try{srcNode.stop();}catch(e){} srcNode=null; } }
+  function stop(){ stopSrc(); isPlaying=false; btn.textContent="▶ 播放"; }
+  btn.onclick=function(){ isPlaying?stop():play(); };
+  vol.oninput=function(){};  // 音量实时改由播放时读取，不重连
+  document.querySelectorAll("#noiseLegacy button[data-nk]").forEach(function(b){
+    b.onclick=function(){ curKind=b.dataset.nk;
+      document.querySelectorAll("#noiseLegacy button[data-nk]").forEach(function(x){ x.style.outline=x===b?"2px solid #E8A33D":"none"; });
+      if(isPlaying) play(); };
+  });
+  var fk=document.querySelector('#noiseLegacy button[data-nk="rain"]'); if(fk) fk.style.outline="2px solid #E8A33D";
+  // 音量滑杆生效：暂停/播放切换时生效即可（简单可靠）
+  vol.onchange=function(){ if(isPlaying) play(); };
 })();
 
 /* 首页渲染 */
