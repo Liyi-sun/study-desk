@@ -557,6 +557,41 @@ details[open] summary::before{content:"▾ ";}
         </div>
       </section>
 
+      <section id="tab-tune" class="tabpane hidden">
+        <div class="hint" style="margin:0 0 12px;">📷 调色配方库 · 按三星 W23 相册编辑器参数整理（相机 Pro / Expert RAW 同思路）。点「⧉ 复制」把参数带去相册照着调，点「✎」改、点「＋」收藏自己的配方。预置配方由收集的教程折算，实机以预览微调为准。</div>
+        <div class="card">
+          <div class="seg" id="tuneCat" style="margin-bottom:10px;">
+            <button data-c="all" class="active">全部</button>
+            <button data-c="清新动漫">清新动漫</button>
+            <button data-c="氛围光感">氛围光感</button>
+            <button data-c="雨夜情绪">雨夜情绪</button>
+            <button data-c="清晰通透">清晰通透</button>
+          </div>
+          <div id="tuneList"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+            <button class="btn sm" id="tuneAdd">＋ 新建配方</button>
+            <button class="btn ghost sm" id="tuneExport">导出备份(JSON)</button>
+            <button class="btn ghost sm" id="tuneImport">导入</button>
+            <input type="file" id="tuneFile" accept=".json,application/json" style="display:none;">
+          </div>
+          <div id="tuneEdit" style="display:none;margin-top:14px;border-top:1px solid var(--line);padding-top:14px;">
+            <div class="field"><label>配方名称</label><input type="text" id="tuneName" placeholder="如：宫崎骏风格·一"></div>
+            <div class="field"><label>分类</label>
+              <select id="tuneCatSel" style="width:100%;background:#13171C;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;">
+                <option>清新动漫</option><option>氛围光感</option><option>雨夜情绪</option><option>清晰通透</option>
+              </select>
+            </div>
+            <div class="field"><label>一句话说明（适合拍什么）</label><input type="text" id="tuneDesc" placeholder="如：晴天户外风景，清新明亮"></div>
+            <div class="field"><label>参数（每行一个：参数名 + 空格 + 数值）</label><textarea id="tuneParams" rows="6" style="width:100%;box-sizing:border-box;" placeholder="饱和度 20&#10;对比度 30&#10;色温 -20"></textarea></div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn sm" id="tuneSave">保存</button>
+              <button class="btn ghost sm" id="tuneCancel">取消</button>
+              <span id="tuneErr" style="font-size:12px;color:#E86A5E;"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ 启发 ============ -->
       <section id="tab-inspire" class="tabpane hidden">
         <div class="card">
@@ -1279,9 +1314,9 @@ function showTab(tab){
     s.classList.toggle("hidden", s.id!=="tab-"+tab);
   });
   // 底部分组按钮高亮（首页/学习/身体/心灵/我的）
-  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
+  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",tune:"study",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
   document.querySelectorAll(".tabbar .grp").forEach(b=>b.classList.toggle("active", b.dataset.grp===(grpMap[tab]||"")));
-  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="book")renderBook();
+  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="tune")renderTune(); if(tab==="book")renderBook();
   if(tab==="home") renderHome();
 }
 
@@ -1297,6 +1332,7 @@ const GROUP_DEF = {
     {tab:"chem", name:"化学", svg:'<path d="M9 3h6M10 3v5l-4 9a2 2 0 002 3h8a2 2 0 002-3l-4-9V3" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 14h10" stroke="#E8A33D" stroke-width="1.6"/>'},
     {tab:"tcm", name:"中医", svg:'<rect x="8" y="3" width="8" height="18" rx="4" stroke="#E8A33D" stroke-width="1.6"/><path d="M8 10h8" stroke="#E8A33D" stroke-width="1.6"/>'},
     {tab:"liuren", name:"六壬", svg:'<circle cx="12" cy="12" r="9" stroke="#E8A33D" stroke-width="1.6"/><circle cx="12" cy="12" r="5" stroke="#E8A33D" stroke-width="1.6"/><path d="M12 3v18M3 12h18" stroke="#E8A33D" stroke-width="1.6"/>'},
+    {tab:"tune", name:"调色配方", svg:'<path d="M12 3a9 9 0 100 18c1.3 0 2.1-.9 2.1-2 0-1-.8-1.6-.8-2.6 0-1.3 1.1-2.4 2.7-2.4H15c2.1 0 3.8-1.6 3.8-3.7C18.8 6.2 15.8 3 12 3z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/>'},
     {url:"http://1.14.44.226:9001", name:"vibe盯盘", svg:'<path d="M3 12h4l2-5 3 10 2-6 1 3h6" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="4" cy="19" r="1.2" fill="#E8A33D" stroke="none"/>'},
     {url:"http://1.14.44.226:9002", name:"vibe研究", svg:'<circle cx="11" cy="11" r="6.5" stroke="#E8A33D" stroke-width="1.6"/><path d="M16 16l5 5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><circle cx="13.5" cy="8.5" r="1.2" fill="#E8A33D" stroke="none"/>'},
     {url:"http://1.14.44.226:9003", name:"便签Memos", svg:'<path d="M5 4h14a1 1 0 011 1v10l-5 5H5a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
@@ -1634,6 +1670,166 @@ async function loadQuote(force){
   }
   setNow(); highlight();
 })();
+
+/* ===================== 调色配方库（三星 W23 调参收藏） ===================== */
+var TUNE_KEY="wb_tune_v1";
+var TUNE_DEFAULT=[
+ {n:"宫崎骏风格·一",c:"清新动漫",t:"普通照片→清新明亮、色彩柔和的动漫质感，适合户外风景",src:"教程折算：亮度100→回0(触发高光细节)+对比30+饱和30+清晰50+高光30+色温-30",p:[["对比度","30"],["饱和度","30"],["清晰度","50"],["高光","30"],["色温","-30"]]},
+ {n:"宫崎骏风格·二",c:"清新动漫",t:"清新动漫感的另一版，色调偏暖一点",src:"教程折算：鲜明+61+饱和-29+色温+11+阴影-50+对比+66",p:[["对比度","66"],["饱和度","-29"],["清晰度","40"],["阴影","-50"],["色温","11"]]},
+ {n:"万物发光",c:"氛围光感",t:"让普通照片有通透发光感，适合阳光、逆光、花草",src:"教程折算：鲜明+40+对比-20+饱和+20+清晰30+锐化30+高光-50+色温+40",p:[["对比度","-20"],["饱和度","20"],["清晰度","45"],["高光","-50"],["色温","40"]]},
+ {n:"丁达尔效应",c:"氛围光感",t:"压暗强光、保留光柱层次，适合树林/窗光的光线场景",src:"教程折算：鲜明+40+对比-20+饱和+20+清晰30+高光-100+锐化20+色温+40",p:[["对比度","-20"],["饱和度","20"],["清晰度","40"],["高光","-100"],["色温","40"]]},
+ {n:"浮光跃金",c:"氛围光感",t:"金色光晕、波光粼粼的暖调，适合日落、水面",src:"教程折算：鲜明+40+对比-20+饱和+20+清晰30+高光-100+锐化30+色温+50",p:[["对比度","-20"],["饱和度","20"],["清晰度","45"],["高光","-100"],["色温","50"]]},
+ {n:"雨天氛围",c:"雨夜情绪",t:"清冷压暗的雨天/夜晚情绪感",src:"教程折算：鲜明-40+对比+30+饱和-20+清晰30+高光-50+锐化30+色温-40+阴影-30",p:[["对比度","30"],["饱和度","-20"],["清晰度","45"],["高光","-50"],["阴影","-30"],["色温","-40"]]},
+ {n:"纸醉金迷",c:"雨夜情绪",t:"霓虹灯下的夜感：冷调压高光、锐利",src:"教程折算：对比+30+饱和+20+高光-50+锐化40+色温-50+色调-30",p:[["对比度","30"],["饱和度","20"],["高光","-50"],["清晰度","45"],["色温","-50"],["色调","-30"]]},
+ {n:"万物清晰",c:"清晰通透",t:"画面干净通透、细节锐利，万能出片前先来一发",src:"教程折算：亮度+100→回0+鲜明-50+对比+40+清晰50+高光-50+阴影-40+色温-40",p:[["对比度","40"],["饱和度","-20"],["清晰度","50"],["高光","-50"],["阴影","-40"],["色温","-40"]]}
+];
+function tuneLoad(){
+  var raw=null;
+  try{ raw=localStorage.getItem(TUNE_KEY); }catch(e){}
+  if(raw){ try{ var a=JSON.parse(raw); if(a&&a.length!==undefined) return a; }catch(e){} }
+  return JSON.parse(JSON.stringify(TUNE_DEFAULT));
+}
+function tuneSave(list){
+  try{ localStorage.setItem(TUNE_KEY, JSON.stringify(list)); }catch(e){ toast("保存失败（存储不可用）"); }
+}
+var tuneList=tuneLoad(), tuneCur="all", tuneEditIdx=-1;
+function tuneCopy(t){
+  var lines=["【"+t.n+"】"+t.c];
+  var ps=[];
+  for(var i=0;i<t.p.length;i++){ ps.push(t.p[i][0]+" "+t.p[i][1]); }
+  lines.push(ps.join("｜"));
+  if(t.t) lines.push(t.t);
+  var txt=lines.join("\n");
+  var ok=false;
+  try{
+    var ta=document.createElement("textarea");
+    ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    ok=document.execCommand("copy");
+    document.body.removeChild(ta);
+  }catch(e){}
+  if(ok){ toast("已复制，去相册照着调吧 ✔"); }
+  else{ window.prompt("长按复制：", txt); }
+}
+function tuneCard(t,i){
+  var chips="";
+  for(var j=0;j<t.p.length;j++){ chips+='<span class="tag" style="margin:2px 4px 0 0;">'+esc(t.p[j][0])+" "+esc(t.p[j][1])+"</span>"; }
+  return '<div style="border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">'
+    +'<span style="font-weight:700;font-size:15px;">'+esc(t.n)+'</span>'
+    +'<span style="display:flex;gap:6px;">'
+    +'<button class="btn ghost sm" data-a="cp" data-i="'+i+'">⧉ 复制</button>'
+    +'<button class="btn ghost sm" data-a="ed" data-i="'+i+'">✎ 编辑</button>'
+    +'<button class="btn ghost sm" data-a="del" data-i="'+i+'">🗑 删除</button>'
+    +'</span></div>'
+    +'<div style="margin:4px 0 2px;font-size:12px;color:var(--muted);">'+esc(t.t||"")+'</div>'
+    +'<div style="margin-top:4px;">'+chips+'</div>'
+    +(t.src?'<div style="margin-top:6px;font-size:11px;color:#6B7280;">'+esc(t.src)+'</div>':'')
+    +'</div>';
+}
+function renderTune(){
+  var catEl=$("#tuneCat"); if(!catEl) return;
+  var bs=catEl.querySelectorAll("button");
+  for(var i=0;i<bs.length;i++){ bs[i].classList.toggle("active", bs[i].getAttribute("data-c")===tuneCur); }
+  var box=$("#tuneList"); if(!box) return;
+  box.innerHTML="";
+  var list=tuneLoad();
+  for(var j=0;j<list.length;j++){
+    if(tuneCur!=="all" && list[j].c!==tuneCur) continue;
+    box.innerHTML=box.innerHTML+tuneCard(list[j],j);
+  }
+  if(!box.innerHTML){ box.innerHTML='<div style="color:var(--muted);font-size:13px;padding:14px 0;">该分类还没有配方，点「＋ 新建配方」收藏一条吧</div>'; }
+  // 卡片事件
+  var btns=box.querySelectorAll("button[data-a]");
+  for(var k=0;k<btns.length;k++){
+    (function(b){
+      b.onclick=function(){
+        var a=b.getAttribute("data-a"), i=parseInt(b.getAttribute("data-i"),10);
+        var ls=tuneLoad();
+        if(i<0||i>=ls.length) return;
+        if(a==="cp"){ tuneCopy(ls[i]); }
+        else if(a==="del"){
+          if(confirm("删除配方「"+ls[i].n+"」？")){ ls.splice(i,1); tuneSave(ls); renderTune(); }
+        }
+        else if(a==="ed"){ tuneOpenEdit(i); }
+      };
+    })(btns[k]);
+  }
+}
+function tuneOpenEdit(i){
+  var ls=tuneLoad(); tuneEditIdx=i;
+  var t=(i>=0&&i<ls.length)?ls[i]:null;
+  $("#tuneName").value=t?t.n:"";
+  $("#tuneDesc").value=t?(t.t||""):"";
+  var sel=$("#tuneCatSel");
+  if(t){ for(var x=0;x<sel.options.length;x++){ if(sel.options[x].value===t.c){ sel.selectedIndex=x; break; } } }
+  $("#tuneParams").value=t?t.p.map(function(q){return q[0]+" "+q[1];}).join("\n"):"";
+  $("#tuneErr").textContent="";
+  $("#tuneEdit").style.display="block";
+  $("#tuneEdit").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function tuneSaveNow(){
+  var n=$("#tuneName").value.trim();
+  if(!n){ $("#tuneErr").textContent="请填名称"; return; }
+  var raw=$("#tuneParams").value.split(/\r?\n/);
+  var p=[];
+  for(var i=0;i<raw.length;i++){
+    var line=raw[i].trim();
+    if(!line) continue;
+    var m=line.split(/[ \t]+/);
+    if(!m[0]) continue;
+    p.push([m[0], m[1]!==undefined?m[1]:"0"]);
+  }
+  if(!p.length){ $("#tuneErr").textContent="至少填一个参数"; return; }
+  var ls=tuneLoad();
+  var obj={ n:n, c:$("#tuneCatSel").value, t:$("#tuneDesc").value.trim(),
+            src:tuneEditIdx>=0&&tuneEditIdx<ls.length?ls[tuneEditIdx].src:"", p:p };
+  if(tuneEditIdx>=0&&tuneEditIdx<ls.length){ ls[tuneEditIdx]=obj; }
+  else{ ls.push(obj); }
+  tuneSave(ls); tuneEditIdx=-1;
+  $("#tuneEdit").style.display="none";
+  renderTune();
+  toast("配方已保存 ✔");
+}
+function tuneWire(){
+  var catEl=$("#tuneCat"); if(catEl){
+    var bs=catEl.querySelectorAll("button");
+    for(var i=0;i<bs.length;i++){
+      (function(b){ b.onclick=function(){ tuneCur=b.getAttribute("data-c"); renderTune(); }; })(bs[i]);
+    }
+  }
+  var add=$("#tuneAdd"); if(add) add.onclick=function(){ tuneOpenEdit(-1); };
+  var sv=$("#tuneSave"); if(sv) sv.onclick=tuneSaveNow;
+  var cc=$("#tuneCancel"); if(cc) cc.onclick=function(){ tuneEditIdx=-1; $("#tuneEdit").style.display="none"; };
+  var ex=$("#tuneExport");
+  if(ex) ex.onclick=function(){
+    var txt=JSON.stringify(tuneLoad(),null,1);
+    try{
+      var ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+      document.body.appendChild(ta); ta.select();
+      var ok=document.execCommand("copy"); document.body.removeChild(ta);
+      toast(ok?"备份 JSON 已复制（粘到备忘录存档即可）":"复制失败");
+    }catch(e){ window.prompt("配方备份 JSON（长按复制存档）：", txt); }
+  };
+  var im=$("#tuneImport"), fi=$("#tuneFile");
+  if(im) im.onclick=function(){ if(fi) fi.click(); };
+  if(fi) fi.onchange=function(){
+    var f=fi.files&&fi.files[0]; if(!f) return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      try{
+        var arr=JSON.parse(rd.result);
+        if(!arr||arr.length===undefined||!arr.every(function(q){return q&&q.n&&q.p&&q.p.length!==undefined;})){ throw 0; }
+        if(!confirm("导入会覆盖当前全部配方（"+tuneLoad().length+" 条），确定？")) return;
+        tuneSave(arr); renderTune(); toast("导入成功 ✔");
+      }catch(e){ alert("JSON 格式不对，请检查备份文件"); }
+    };
+    rd.readAsText(f);
+    fi.value="";
+  };
+}
+tuneWire();
+renderTune();
 
 /* 首页渲染 */
 function renderHome(){
