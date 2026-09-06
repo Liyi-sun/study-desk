@@ -557,6 +557,11 @@ details[open] summary::before{content:"▾ ";}
         </div>
       </section>
 
+      <section id="tab-guwen" class="tabpane hidden">
+        <div class="hint" style="margin:0 0 12px;">📜 古文经典研读 · 六个精选入口：读原文、查字词、背默练习一站配齐。点卡片直接打开，点 ⧉ 复制链接可贴到手机/其它设备。</div>
+        <div class="card" id="guwenList"></div>
+      </section>
+
       <section id="tab-tune" class="tabpane hidden">
         <div class="hint" style="margin:0 0 12px;">📷 调色配方库 · 按三星 W23 相册编辑器参数整理（相机 Pro / Expert RAW 同思路）。点「⧉ 复制」把参数带去相册照着调，点「✎」改、点「＋」收藏自己的配方。预置配方由收集的教程折算，实机以预览微调为准。</div>
         <div class="card">
@@ -1314,9 +1319,9 @@ function showTab(tab){
     s.classList.toggle("hidden", s.id!=="tab-"+tab);
   });
   // 底部分组按钮高亮（首页/学习/身体/心灵/我的）
-  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",tune:"study",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
+  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",tune:"study",guwen:"study",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
   document.querySelectorAll(".tabbar .grp").forEach(b=>b.classList.toggle("active", b.dataset.grp===(grpMap[tab]||"")));
-  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="tune")renderTune(); if(tab==="book")renderBook();
+  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="tune")renderTune(); if(tab==="guwen")renderGuwen(); if(tab==="book")renderBook();
   if(tab==="home") renderHome();
 }
 
@@ -1336,12 +1341,7 @@ const GROUP_DEF = {
     {url:"http://1.14.44.226:9001", name:"vibe盯盘", svg:'<path d="M3 12h4l2-5 3 10 2-6 1 3h6" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="4" cy="19" r="1.2" fill="#E8A33D" stroke="none"/>'},
     {url:"http://1.14.44.226:9002", name:"vibe研究", svg:'<circle cx="11" cy="11" r="6.5" stroke="#E8A33D" stroke-width="1.6"/><path d="M16 16l5 5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><circle cx="13.5" cy="8.5" r="1.2" fill="#E8A33D" stroke="none"/>'},
     {url:"http://1.14.44.226:9003", name:"便签Memos", svg:'<path d="M5 4h14a1 1 0 011 1v10l-5 5H5a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
-    {url:"https://www.gushiwen.cn/", name:"古诗文网", svg:'<path d="M4 5a2 2 0 012-2h12a1 1 0 011 1v15H6a2 2 0 01-2-2V5z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4v15M12 9h6M12 13h6" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
-    {url:"https://www.zdic.net/", name:"汉典", svg:'<rect x="4" y="4" width="16" height="16" rx="1" stroke="#E8A33D" stroke-width="1.6"/><path d="M12 4v16M8 8h2M8 12h8M8 16h5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
-    {url:"https://herobrinein.github.io/qingjianmoyuan/", name:"青简墨缘", svg:'<path d="M16.5 3.8a2 2 0 012.8 2.8L8 18l-4 1.2L5.2 15 16.5 3.8z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/>'},
-    {url:"https://www.guoxuedashi.net/", name:"国学大师", svg:'<rect x="6" y="6" width="12" height="12" rx="1.5" stroke="#E8A33D" stroke-width="1.6"/><path d="M10.5 10.5h3v3h-3z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/>'},
-    {url:"https://sou-yun.cn/", name:"搜韵", svg:'<path d="M9.5 17V7l8-1.6V15" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.4" cy="17.6" r="2" stroke="#E8A33D" stroke-width="1.6"/><circle cx="15.4" cy="15.6" r="2" stroke="#E8A33D" stroke-width="1.6"/>'},
-    {url:"https://ctext.org/", name:"哲书计划", svg:'<path d="M7.5 4v16M12 4v16M16.5 4v16" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><path d="M4.5 8.5h5M4.5 13.5h5M14.5 8.5h5M14.5 13.5h5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
+    {tab:"guwen", name:"古文", svg:'<path d="M7.5 4v16M12 4v16M16.5 4v16" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><path d="M4.5 8.5h5M4.5 13.5h5M14.5 8.5h5M14.5 13.5h5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'}
   ]},
   body:{title:"💪 身体", items:[
     {tab:"taichi", name:"拳术", svg:'<circle cx="12" cy="12" r="9" stroke="#E8A33D" stroke-width="1.6"/><path d="M12 12a4.5 4.5 0 010-9 4.5 4.5 0 110 9 4.5 4.5 0 010 9" stroke="#E8A33D" stroke-width="1.6"/>'},
@@ -1853,6 +1853,49 @@ function tuneWire(){
 }
 tuneWire();
 renderTune();
+
+/* ===================== 古文 · 经典研读（下级菜单页） ===================== */
+var GUWEN_SITES=[
+ {n:"古诗文网",u:"https://www.gushiwen.cn/",d:"原文+白话译文+字词注释+赏析，古文诗词最全，查出处首选",s:'<path d="M4 5a2 2 0 012-2h12a1 1 0 011 1v15H6a2 2 0 01-2-2V5z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4v15M12 9h6M12 13h6" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
+ {n:"汉典",u:"https://www.zdic.net/",d:"古汉语字词典：康熙/说文原典、甲骨→楷书字形演变、字源考据",s:'<rect x="4" y="4" width="16" height="16" rx="1" stroke="#E8A33D" stroke-width="1.6"/><path d="M12 4v16M8 8h2M8 12h8M8 16h5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
+ {n:"国学大师",u:"https://www.guoxuedashi.com/",d:"2万种古籍 + 近60部工具书全文检索，四库/说文/金文甲骨。注意域名是 .com",s:'<rect x="6" y="6" width="12" height="12" rx="1.5" stroke="#E8A33D" stroke-width="1.6"/><path d="M10.5 10.5h3v3h-3z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/>'},
+ {n:"青简墨缘",u:"https://herobrinein.github.io/qingjianmoyuan/",d:"背诵默写练习：小初高 139 篇必背 + 注释译文赏析，PWA 可离线",s:'<path d="M16.5 3.8a2 2 0 012.8 2.8L8 18l-4 1.2L5.2 15 16.5 3.8z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/>'},
+ {n:"搜韵",u:"https://sou-yun.cn/",d:"典故/生僻词出处详解、诗词格律（平仄押韵）与检索创作工具",s:'<path d="M9.5 17V7l8-1.6V15" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7.4" cy="17.6" r="2" stroke="#E8A33D" stroke-width="1.6"/><circle cx="15.4" cy="15.6" r="2" stroke="#E8A33D" stroke-width="1.6"/>'},
+ {n:"哲书计划",u:"https://ctext.org/zh",d:"中国哲学书电子化计划：先秦诸子到清·经史子集全文库，可检索对照",s:'<path d="M7.5 4v16M12 4v16M16.5 4v16" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><path d="M4.5 8.5h5M4.5 13.5h5M14.5 8.5h5M14.5 13.5h5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'}
+];
+function renderGuwen(){
+  var box=$("#guwenList"); if(!box) return;
+  box.innerHTML="";
+  for(var i=0;i<GUWEN_SITES.length;i++){
+    var t=GUWEN_SITES[i];
+    var card='<div style="border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">'
+      +'<div style="display:flex;gap:10px;align-items:center;min-width:0;flex:1;">'
+      +'<span style="flex:none;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none">'+t.s+'</svg></span>'
+      +'<span style="min-width:0;"><span style="font-weight:700;font-size:15px;display:block;">'+esc(t.n)+'</span>'
+      +'<span style="font-size:12px;color:var(--muted);display:block;margin-top:2px;">'+esc(t.d)+'</span></span></div>'
+      +'<span style="display:flex;gap:6px;flex:none;">'
+      +'<button class="btn sm" data-gu="open">打开</button>'
+      +'<button class="btn ghost sm" data-gu="cp">⧉ 复制</button>'
+      +'</span></div>';
+    box.innerHTML=box.innerHTML+card;
+  }
+  var btns=box.querySelectorAll("button[data-gu]");
+  for(var j=0;j<btns.length;j++){
+    (function(b){
+      b.onclick=function(){
+        var card=b.parentNode.parentNode;
+        var idx=-1; var cards=box.querySelectorAll("div[style*='border:1px solid var(--line)']");
+        // 由按钮顺序反推站点
+        var all=box.querySelectorAll("button[data-gu]");
+        var k=0;
+        for(var x=0;x<all.length;x++){ if(all[x]===b){ k=Math.floor(x/2); break; } }
+        if(k<0||k>=GUWEN_SITES.length) return;
+        if(b.getAttribute("data-gu")==="open"){ window.open(GUWEN_SITES[k].u,"_blank"); }
+        else{ copyLink(GUWEN_SITES[k].u); }
+      };
+    })(btns[j]);
+  }
+}
 
 /* 首页渲染 */
 function renderHome(){
