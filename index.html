@@ -593,6 +593,10 @@ details[open] summary::before{content:"▾ ";}
               <button class="btn ghost sm" id="tuneCancel">取消</button>
               <span id="tuneErr" style="font-size:12px;color:#E86A5E;"></span>
             </div>
+            <div id="tuneDelWrap" style="display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;text-align:left;">
+              <button class="btn ghost sm" id="tuneDel" style="color:#E86A5E;border-color:rgba(232,106,94,.45);">🗑 删除此配方（需确认）</button>
+              <span style="font-size:11px;color:#6B7280;margin-left:8px;">点删除会再次弹确认，别手滑</span>
+            </div>
           </div>
         </div>
       </section>
@@ -1743,7 +1747,6 @@ function tuneCard(t,i){
     +'<span style="display:flex;gap:6px;">'
     +'<button class="btn ghost sm" data-a="cp" data-i="'+i+'">⧉ 复制</button>'
     +'<button class="btn ghost sm" data-a="ed" data-i="'+i+'">✎ 编辑</button>'
-    +'<button class="btn ghost sm" data-a="del" data-i="'+i+'">🗑 删除</button>'
     +'</span></div>'
     +'<div style="margin:4px 0 2px;font-size:12px;color:var(--muted);">'+esc(t.t||"")+'</div>'
     +'<div style="margin-top:4px;">'+chips+'</div>'
@@ -1771,9 +1774,6 @@ function renderTune(){
         var ls=tuneLoad();
         if(i<0||i>=ls.length) return;
         if(a==="cp"){ tuneCopy(ls[i]); }
-        else if(a==="del"){
-          if(confirm("删除配方「"+ls[i].n+"」？")){ ls.splice(i,1); tuneSave(ls); renderTune(); }
-        }
         else if(a==="ed"){ tuneOpenEdit(i); }
       };
     })(btns[k]);
@@ -1781,6 +1781,7 @@ function renderTune(){
 }
 function tuneOpenEdit(i){
   var ls=tuneLoad(); tuneEditIdx=i;
+  var dw=$("#tuneDelWrap"); if(dw) dw.style.display=(i>=0&&i<ls.length)?"block":"none";
   var t=(i>=0&&i<ls.length)?ls[i]:null;
   $("#tuneName").value=t?t.n:"";
   $("#tuneDesc").value=t?(t.t||""):"";
@@ -1823,7 +1824,17 @@ function tuneWire(){
   }
   var add=$("#tuneAdd"); if(add) add.onclick=function(){ tuneOpenEdit(-1); };
   var sv=$("#tuneSave"); if(sv) sv.onclick=tuneSaveNow;
-  var cc=$("#tuneCancel"); if(cc) cc.onclick=function(){ tuneEditIdx=-1; $("#tuneEdit").style.display="none"; };
+  var cc=$("#tuneCancel"); if(cc) cc.onclick=function(){ tuneEditIdx=-1; $("#tuneEdit").style.display="none"; var dwz=$("#tuneDelWrap"); if(dwz) dwz.style.display="none"; };
+  var del=$("#tuneDel"); if(del) del.onclick=function(){
+    var ls2=tuneLoad();
+    if(tuneEditIdx<0||tuneEditIdx>=ls2.length){ toast("没有可删除的配方"); return; }
+    if(confirm("确定删除配方「"+ls2[tuneEditIdx].n+"」？删除后不可恢复。")){
+      ls2.splice(tuneEditIdx,1); tuneSave(ls2); tuneEditIdx=-1;
+      $("#tuneEdit").style.display="none";
+      var dw3=$("#tuneDelWrap"); if(dw3) dw3.style.display="none";
+      renderTune(); toast("已删除 ✓");
+    }
+  };
   var ex=$("#tuneExport");
   if(ex) ex.onclick=function(){
     var txt=JSON.stringify(tuneLoad(),null,1);
@@ -2982,10 +2993,32 @@ async function bkStartEdit(id){
   renderBook();
   toast("编辑模式：改好后点「保存修改」，不想改了点「取消修改」");
 }
+function bkEvalAmt(v){
+  // 返回：cents(>0) | -1 空 | -2 算式非法
+  var s=String(v==null?"":v).replace(/,/g,"").replace(/¥/g,"").trim();
+  if(!s) return -1;
+  if(!/^[0-9+\-*/().\s]+$/.test(s)) return -2;
+  var val=null;
+  try{ val=new Function("return ("+s+");")(); }catch(e){ return -2; }
+  if(typeof val!=="number" || !isFinite(val)) return -2;
+  return Math.round(val*100);
+}
+function bkCalNow(){
+  var el=document.getElementById("bkAmt");
+  if(!el) return;
+  var cal=document.getElementById("bkAmtCal");
+  var r=bkEvalAmt(el.value);
+  if(cal){
+    if(r===-2){ cal.textContent="算式不对"; }
+    else if(r>0){ cal.textContent="= ¥"+(r/100).toFixed(2); }
+    else { cal.textContent=""; }
+  }
+}
 function bkDoSave(){
-  const cents=Math.round((parseFloat(bkAmtV)||0)*100);
+  const cents=bkEvalAmt(bkAmtV);
   const cat=((bkCustomV||bkCat)||"").trim();
   if(!cat){ toast("请选分类，或选下拉里的「✏️ 自定义新名称」直接输入"); return; }
+  if(cents===-2){ toast("金额算式不对：只能数字和 + - * / ( )"); return; }
   if(!(cents>0)){ toast("金额要大于 0"); return; }
   if(bkPendImgs.length>BK_MAXIMG){ toast("凭证最多 "+BK_MAXIMG+" 张"); return; }
   const date=bkDateV||bkToday();
@@ -3146,7 +3179,7 @@ function bookBody(){
     +'<div class="seg" id="bkTypeSeg" style="margin-top:10px;"><button data-t="exp"'+(bkType==="exp"?" class=\"active\"":"")+'>支&nbsp;出</button><button data-t="inc"'+(bkType==="inc"?" class=\"active\"":"")+'>收&nbsp;入</button></div>'
     +'<div class="bkline"><label style="flex:0 0 auto;">分类</label><select id="bkCatSel" class="bkcatsel">'+bkCatOptions(bkType)+'</select><button type="button" class="mini" id="bkCatMgr" title="整理自定义分类" style="min-height:42px;flex:0 0 auto;">🛠</button></div>'
     +'<div class="bkline" id="bkCustomWrap" style="display:none;"><label style="flex:0 0 auto;color:#D8A657;">✏️ 新名</label><input type="text" id="bkCustomCat" class="bknote" maxlength="12" placeholder="如：体检费 —— 记完自动加入下拉，可点 🛠 删除" value="'+esc(bkCustomV)+'"></div>'
-    +'<div class="bkline"><label>金额</label><span style="font-size:22px;font-weight:800;color:var(--muted);">¥</span><input type="number" inputmode="decimal" min="0" step="0.01" class="bknum" id="bkAmt" placeholder="0.00" value="'+esc(bkAmtV)+'"></div>'
+    +'<div class="bkline"><label>金额</label><span style="font-size:22px;font-weight:800;color:var(--muted);">¥</span><input type="text" inputmode="decimal" class="bknum" id="bkAmt" placeholder="0.00 可用算式" value="'+esc(bkAmtV)+'"><span id="bkAmtCal" style="font-size:12px;color:#C9C4BC;margin-left:8px;"></span></div>'
     +'<div class="bkline"><label>日期</label><input type="date" class="bkdate" id="bkDate" value="'+esc(bkDateV)+'"></div>'
     +'<div class="bkline"><label>备注</label><input type="text" class="bknote" id="bkNote" maxlength="60" placeholder="可写：这钱花在哪儿 / 具体干什么 / 交到几月" value="'+esc(bkNoteV)+'"></div>'
     +'<div class="bkline"><label>凭证</label><div class="bkthumbs" id="bkThumbs"></div></div>'
@@ -3376,7 +3409,7 @@ function bkBindBook(){
   const t0=document.getElementById("bkTypeSeg"); if(t0) t0.querySelectorAll("button").forEach(function(b){ b.onclick=()=>{ bkType=b.dataset.t; bkCat=""; bkCustomV=""; bkAmtV=document.getElementById("bkAmt")?document.getElementById("bkAmt").value:""; bkNoteV=document.getElementById("bkNote")?document.getElementById("bkNote").value:""; bkDateV=document.getElementById("bkDate")?document.getElementById("bkDate").value:""; renderBook(); }; });
   bkBindSel();
   const mg=document.getElementById("bkCatMgr"); if(mg) mg.onclick=bkCustOpen;
-  const a0=document.getElementById("bkAmt"); if(a0) a0.oninput=()=>{ bkAmtV=a0.value; };
+  const a0=document.getElementById("bkAmt"); if(a0){ a0.oninput=()=>{ bkAmtV=a0.value; bkCalNow(); }; bkCalNow(); }
   const d0=document.getElementById("bkDate"); if(d0) d0.onchange=()=>{ bkDateV=d0.value; };
   const n0=document.getElementById("bkNote"); if(n0) n0.oninput=()=>{ bkNoteV=n0.value; };
   const s0=document.getElementById("bkSave"); if(s0) s0.onclick=bkDoSave;
