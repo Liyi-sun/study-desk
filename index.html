@@ -1829,7 +1829,7 @@ function tuneOpenEdit(i){
   $("#tuneParams").value=t?t.p.map(function(q){return q[0]+" "+q[1];}).join("\n"):"";
   $("#tuneErr").textContent="";
   $("#tuneEdit").style.display="block";
-  $("#tuneEdit").scrollIntoView({behavior:"smooth",block:"nearest"});
+  var te=document.getElementById("tuneEdit"); if(te){ try{ te.scrollIntoView(); }catch(e){} }
 }
 function tuneSaveNow(){
   var n=$("#tuneName").value.trim();
