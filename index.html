@@ -697,6 +697,29 @@ details[open] summary::before{content:"▾ ";}
         </div>
       </section>
 
+      <section id="tab-prison" class="tabpane hidden">
+        <div class="hint" style="margin:0 0 12px;">💪 囚徒健身 · 五艺十式（按跟练视频的式名与顺序；倒立撑需专业条件本集未含）。每式都配了对 P 教学视频：点式名行 = 内嵌播放该式，练到能标准完成 N 组再点「✓ 达标」进入下一式。式名/顺序以视频为准，与书籍译名可能略有差异。⚠️ 量力而行，动作不适即停。</div>
+        <div class="card">
+          <div class="stats" id="prisonStats"></div>
+          <div id="prisonTip" style="display:none;font-size:12.5px;color:#E8A33D;margin:0 0 8px;"></div>
+          <div class="seg" id="prisonSeg" style="margin-bottom:10px;"></div>
+          <div id="prisonSteps"></div>
+        </div>
+        <div class="card" id="prisonPlayerWrap" style="display:none;">
+          <div id="prisonNow" style="font-size:13px;color:var(--muted);margin-bottom:8px;"></div>
+          <div style="position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;">
+            <iframe id="prisonFrame" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;fullscreen" loading="lazy"></iframe>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px;margin:0 0 8px;">🤖 AI 制定训练计划</h3>
+          <div class="field"><label>说说你的情况（如：俯卧撑能做标准10个 / 每天约30分钟 / 每周练5天 / 目标是减重+体能）</label><textarea id="prisonAsk" rows="3" style="width:100%;box-sizing:border-box;"></textarea></div>
+          <div style="display:flex;gap:8px;align-items:center;"><button class="btn sm" id="prisonGen">🤖 生成计划</button><span id="prisonAiTip" style="font-size:12px;color:var(--muted);"></span></div>
+          <div id="prisonPlan" style="margin-top:10px;display:none;white-space:pre-wrap;font-size:13px;line-height:1.7;color:var(--text);"></div>
+          <div id="prisonPlanDoneWrap" style="margin-top:8px;display:none;"><button class="btn sm" id="prisonPlanDone">今天按计划练完了 ✓</button></div>
+        </div>
+      </section>
+
       <section id="tab-taichi" class="tabpane hidden">
         <div class="card">
           <h3><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#E8A33D" stroke-width="1.6"/><path d="M12 12a4.5 4.5 0 010-9 4.5 4.5 0 110 9 4.5 4.5 0 010 9" stroke="#E8A33D" stroke-width="1.6"/></svg></span>拳术 · 跟练视频库</h3>
@@ -1337,9 +1360,9 @@ function showTab(tab){
     s.classList.toggle("hidden", s.id!=="tab-"+tab);
   });
   // 底部分组按钮高亮（首页/学习/身体/心灵/我的）
-  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",tune:"study",guwen:"study",fit:"body",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
+  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",tune:"study",guwen:"study",fit:"body",prison:"body",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
   document.querySelectorAll(".tabbar .grp").forEach(b=>b.classList.toggle("active", b.dataset.grp===(grpMap[tab]||"")));
-  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="fit")renderFit(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="tune")renderTune(); if(tab==="guwen")renderGuwen(); if(tab==="book")renderBook();
+  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="fit")renderFit(); if(tab==="prison")renderPrison(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="tune")renderTune(); if(tab==="guwen")renderGuwen(); if(tab==="book")renderBook();
   if(tab==="home") renderHome();
 }
 
@@ -1364,7 +1387,8 @@ const GROUP_DEF = {
   body:{title:"💪 身体", items:[
     {tab:"taichi", name:"拳术", svg:'<circle cx="12" cy="12" r="9" stroke="#E8A33D" stroke-width="1.6"/><path d="M12 12a4.5 4.5 0 010-9 4.5 4.5 0 110 9 4.5 4.5 0 010 9" stroke="#E8A33D" stroke-width="1.6"/>'},
     {tab:"yueqi", name:"乐器", svg:'<path d="M9 18V5l10-2v13" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><circle cx="6" cy="18" r="3" stroke="#E8A33D" stroke-width="1.6"/><circle cx="17" cy="16" r="3" stroke="#E8A33D" stroke-width="1.6"/>'},
-    {tab:"fit", name:"大基数减重", svg:'<path d="M13 4l-2 6h6l-4 10M11 4H7l3 7H5l4 9" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="19" cy="5" r="1.6" fill="#E8A33D" stroke="none"/><circle cx="20" cy="9" r="1.6" fill="#E8A33D" stroke="none"/>'}
+    {tab:"fit", name:"大基数减重", svg:'<path d="M13 4l-2 6h6l-4 10M11 4H7l3 7H5l4 9" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="19" cy="5" r="1.6" fill="#E8A33D" stroke="none"/><circle cx="20" cy="9" r="1.6" fill="#E8A33D" stroke="none"/>'},
+    {tab:"prison", name:"囚徒健身", svg:'<rect x="3" y="10" width="18" height="4" rx="1.2" stroke="#E8A33D" stroke-width="1.6"/><rect x="2" y="5" width="3.4" height="14" rx="1.2" stroke="#E8A33D" stroke-width="1.6"/><rect x="18.6" y="5" width="3.4" height="14" rx="1.2" stroke="#E8A33D" stroke-width="1.6"/>'}
   ]},
   mind:{title:"🧘 心灵", items:[
     {tab:"memory", name:"记忆锦囊", svg:'<path d="M12 4c-4 0-7 3-7 7 0 3 2 4 2 7h10c0-3 2-4 2-7 0-4-3-7-7-7z" stroke="#E8A33D" stroke-width="1.6"/><path d="M9 11l2 2 4-4" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'},
@@ -1962,6 +1986,109 @@ function renderFit(){
     })(items[j]);
   }
 }
+
+/* ===================== 囚徒健身（五艺十式 + 对P视频 + AI计划） ===================== */
+var PRISON_BV={A:"BV1uA411Y7q4",B:"BV1ms411y7J5"};
+var PRISON_ART=[
+ {k:"p",n:"俯卧撑",pg:1,steps:["墙壁俯卧撑","上斜俯卧撑","膝盖俯卧撑","半俯卧撑","标准俯卧撑","窄距俯卧撑","偏重俯卧撑","单臂半俯卧撑","杠杆俯卧撑","单臂俯卧撑"]},
+ {k:"sq",n:"深蹲",pg:31,steps:["肩倒立深蹲","折刀深蹲","支撑深蹲","半深蹲","标准深蹲","窄距深蹲","偏重深蹲","单腿半深蹲","单腿辅助深蹲","单腿深蹲"]},
+ {k:"pu",n:"引体",pg:41,steps:["垂直引体","水平引体向上","折刀引体向上","半引体向上","标准引体向上","窄距引体向上","偏重引体向上","单臂半引体向上","单臂辅助引体向上","单臂引体向上"]},
+ {k:"lg",n:"举腿",pg:11,steps:["坐姿屈膝","平卧抬膝","平卧屈举腿","平卧蛙举腿","平卧直举腿","悬垂屈膝","悬垂屈举腿","悬垂蛙举腿","悬垂半举腿","悬垂直举腿"]},
+ {k:"br",n:"桥",pg:21,steps:["短桥","直桥","高低桥","顶桥","半桥","标准桥","下行桥","上行桥","合桥","铁板桥"]}
+];
+var PRISON_KEY="wb_prison_v1";
+function prisonLoad(){
+  var d={done:{},cur:"p",src:"A",plan:"",ask:""};
+  try{ var raw=localStorage.getItem(PRISON_KEY); if(raw){ var o=JSON.parse(raw); if(o&&o.done) d=Object.assign(d,o); } }catch(e){}
+  return d;
+}
+function prisonSave(d){ try{ localStorage.setItem(PRISON_KEY, JSON.stringify(d)); }catch(e){} }
+var prisonState=prisonLoad();
+function prisonSrcUrl(artKey,step){
+  var art=null; for(var i=0;i<PRISON_ART.length;i++){ if(PRISON_ART[i].k===artKey){ art=PRISON_ART[i]; break; } }
+  if(!art) return "";
+  var pg=art.pg+step;
+  return "https://player.bilibili.com/player.html?bvid="+PRISON_BV[prisonState.src]+"&page="+pg+"&high_quality=1&danmaku=0&autoplay=1";
+}
+function prisonTodayStr(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function prisonMark(id){
+  if(!prisonState.done[id]){ prisonState.done[id]=1; }
+  else{ delete prisonState.done[id]; }
+  prisonSave(prisonState); renderPrison();
+}
+function renderPrison(){
+  var seg=$("#prisonSeg"); if(!seg) return;
+  prisonState=prisonLoad();
+  seg.innerHTML=PRISON_ART.map(function(a){ return "<button data-k=\""+a.k+"\" class=\""+(a.k===prisonState.cur?"active":"")+"\">"+a.n+"</button>"; }).join("")+"<span style=\"font-size:11px;color:#6B7280;align-self:center;margin-left:auto;padding-right:4px;\">视频源:"+(prisonState.src==="A"?"初宬屹版":"TnDark版")+" <a href=\"javascript:void(0)\" id=\"prisonSrcSw\" style=\"color:#E8A33D;text-decoration:none;\">切换</a></span>";
+  seg.querySelectorAll("button[data-k]").forEach(function(b){ b.onclick=function(){ prisonState.cur=b.dataset.k; prisonSave(prisonState); renderPrison(); }; });
+  var sw=seg.querySelector("#prisonSrcSw");
+  if(sw) sw.onclick=function(){ prisonState.src=(prisonState.src==="A"?"B":"A"); prisonSave(prisonState); renderPrison(); };
+  // 统计
+  var total=PRISON_ART.reduce(function(a,x){ return a+x.steps.length; },0);
+  var dn=Object.keys(prisonState.done||{}).length;
+  var st=$("#prisonStats");
+  if(st) st.innerHTML="<div style=\"font-size:13px;color:var(--muted);\">已达标 <b style=\"color:#E8A33D;\">"+dn+"</b>/"+total+" 式 · 目标：每式能标准完成后再进下一式</div>";
+  var tip=$("#prisonTip");
+  var today=prisonTodayStr();
+  var tDone=(prisonState.td&&prisonState.td.date===today)?prisonState.td.n:0;
+  if(tip){ tip.style.display = tDone>0 ? "none":"block"; tip.textContent = tDone>0 ? "" : "今天还没打卡，练一组吧 💪"; }
+  // 当艺步骤
+  var art=null; for(var i2=0;i2<PRISON_ART.length;i2++){ if(PRISON_ART[i2].k===prisonState.cur){ art=PRISON_ART[i2]; break; } }
+  var box=$("#prisonSteps"); if(!box||!art) return;
+  box.innerHTML="";
+  for(var j=0;j<art.steps.length;j++){
+    var id=art.k+"|"+j;
+    var isDone=!!(prisonState.done&&prisonState.done[id]);
+    var row="<div data-play=\""+j+"\" style=\"border:1px solid var(--line);border-radius:11px;padding:8px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;background:"+(isDone?"rgba(232,163,61,.07)":"none")+";\">"
+      +"<span style=\"flex:none;width:26px;height:26px;border-radius:50%;border:2px solid "+(isDone?"#E8A33D":"var(--line)")+";display:flex;align-items:center;justify-content:center;font-size:13px;color:"+(isDone?"#E8A33D":"var(--muted)")+";\">"+(j+1)+"</span>"
+      +"<span style=\"flex:1;min-width:0;\"><b style=\"font-size:13.5px;\">"+esc(art.steps[j])+"</b><span style=\"font-size:11px;color:var(--muted);margin-left:8px;\">"+(isDone?"已达标 ✓":"P"+ (art.pg+j) +" 视频")+"</span></span>"
+      +"<span style=\"flex:none;display:flex;gap:6px;\"><button class=\"btn ghost sm\" data-v=\""+j+"\">▶ 视频</button><button class=\"btn sm\" data-d=\""+id+"\" style=\"min-width:88px;\">"+(isDone?"撤销":"✓ 达标")+"</button></span></div>";
+    box.innerHTML=box.innerHTML+row;
+  }
+  box.querySelectorAll("button[data-v]").forEach(function(b){ b.onclick=function(ev){ ev.stopPropagation(); playPrisonStep(parseInt(b.dataset.v,10)); }; });
+  box.querySelectorAll("button[data-d]").forEach(function(b){ b.onclick=function(ev){ ev.stopPropagation(); var id2=b.dataset.d; if(!prisonState.done[id2]){ prisonMark(id2); var td=prisonState.td||{date:"",n:0}; var t2=prisonTodayStr(); if(td.date!==t2){ td={date:t2,n:0}; } td.n++; prisonState.td=td; prisonSave(prisonState); toast("达标打卡 ✓"); } else { prisonMark(id2); toast("已撤销"); } renderPrison(); }; });
+  box.querySelectorAll("div[data-play]").forEach(function(row){ row.onclick=function(){ playPrisonStep(parseInt(row.getAttribute("data-play"),10)); }; });
+  // 计划区状态
+  var plan=$("#prisonPlan");
+  if(prisonState.plan){ plan.style.display="block"; plan.textContent=prisonState.plan; var pw=$("#prisonPlanDoneWrap"); pw.style.display="block"; pw.style.display=(tDone>0?"none":"block"); }
+  var ask=$("#prisonAsk"); if(ask&&!ask.value&&prisonState.ask) ask.value=prisonState.ask;
+}
+function playPrisonStep(si){
+  var art=null; for(var i=0;i<PRISON_ART.length;i++){ if(PRISON_ART[i].k===prisonState.cur){ art=PRISON_ART[i]; break; } }
+  if(!art||si<0||si>=art.steps.length) return;
+  var wrap=$("#prisonPlayerWrap"), now=$("#prisonNow"), fr=$("#prisonFrame");
+  if(wrap) wrap.style.display="block";
+  if(now) now.innerHTML="正在播放：<b>"+art.n+" · "+esc(art.steps[si])+"</b>（第 "+(si+1)+"/10 式）· 学完练几组，标准完成就点「✓ 达标」";
+  if(fr) fr.src=prisonSrcUrl(art.k,si);
+  var wrap2=document.getElementById("prisonPlayerWrap"); if(wrap2) wrap2.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function prisonAskAI(){
+  var key=getKey&&getKey()?getKey():"";
+  if(!key){ toast("请先到「我的 → AI 设置」填 SiliconFlow Key"); return; }
+  var ask=$("#prisonAsk").value.trim();
+  if(!ask){ toast("先说说你的情况/目标"); return; }
+  var tip=$("#prisonAiTip"); if(tip) tip.textContent="生成中…请稍候";
+  var sys="你是《囚徒健身》体系的训练教练。用户会描述自己当前能做的动作级别与训练目标。请只输出一周训练计划（纯文字，禁止markdown符号），格式：\n周几 | 练哪几艺 · 具体到第几式 · 组数×次数/时长 · 组间休息。附 3 行左右要点提醒（动作宁少勿错、留一天休息、膝盖/手腕不适减量）。五艺：俯卧撑/深蹲/引体/举腿/桥，每艺十式由易到难。";
+  fetch("https://api.siliconflow.cn/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify({model:getModel?getModel():undefined,messages:[{role:"system",content:sys},{role:"user",content:ask}],temperature:0.6,max_tokens:1200})})
+  .then(function(r){ return r.json(); })
+  .then(function(j){
+    var txt=(j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content)||("AI 出错了："+JSON.stringify(j).slice(0,120));
+    prisonState.plan=txt; prisonState.ask=ask; prisonSave(prisonState); renderPrison();
+    if(tip) tip.textContent="";
+    toast("计划已生成 ✓");
+  })
+  .catch(function(e){ if(tip) tip.textContent=""; toast("调用失败："+String(e).slice(0,60)); });
+}
+function prisonWire(){
+  var gen=$("#prisonGen"); if(gen) gen.onclick=prisonAskAI;
+  var pd=$("#prisonPlanDone");
+  if(pd) pd.onclick=function(){
+    var td=prisonState.td||{date:"",n:0}; var t2=prisonTodayStr(); if(td.date!==t2){ td={date:t2,n:0}; }
+    td.n++; prisonState.td=td; prisonSave(prisonState); toast("今日打卡 +1，坚持住 💪"); renderPrison();
+  };
+  var ask=$("#prisonAsk"); if(ask){ ask.onkeydown=function(ev){ if(ev.key==="Enter"&&(ev.ctrlKey||ev.metaKey)) prisonAskAI(); }; }
+}
+prisonWire();
 
 /* 首页渲染 */
 function renderHome(){
