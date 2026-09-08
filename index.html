@@ -698,7 +698,7 @@ details[open] summary::before{content:"▾ ";}
       </section>
 
       <section id="tab-prison" class="tabpane hidden">
-        <div class="hint" style="margin:0 0 12px;">💪 囚徒健身 · 五艺十式（按跟练视频的式名与顺序；倒立撑需专业条件本集未含）。每式都配了对 P 教学视频：点式名行 = 内嵌播放该式，练到能标准完成 N 组再点「✓ 达标」进入下一式。式名/顺序以视频为准，与书籍译名可能略有差异。⚠️ 量力而行，动作不适即停。</div>
+        <div class="hint" style="margin:0 0 12px;">💪 囚徒健身 · 六艺十式（俯卧撑/深蹲/引体/举腿/桥 各配视频；倒立撑官方无视频，按文字要领练）。每式行标注 <b>达标标准</b>（升级目标）：练到能标准完成再点「✓ 达标」进下一式——别赶进度，先用 2-1-2 节奏（下2秒·停1秒·上2秒）把前面每式吃透，高级式自然水到渠成。⚠️ 量力而行，动作不适即停。</div>
         <div class="card">
           <div class="stats" id="prisonStats"></div>
           <div id="prisonTip" style="display:none;font-size:12.5px;color:#E8A33D;margin:0 0 8px;"></div>
@@ -1990,11 +1990,12 @@ function renderFit(){
 /* ===================== 囚徒健身（五艺十式 + 对P视频 + AI计划） ===================== */
 var PRISON_BV={A:"BV1uA411Y7q4",B:"BV1ms411y7J5"};
 var PRISON_ART=[
- {k:"p",n:"俯卧撑",pg:1,steps:["墙壁俯卧撑","上斜俯卧撑","膝盖俯卧撑","半俯卧撑","标准俯卧撑","窄距俯卧撑","偏重俯卧撑","单臂半俯卧撑","杠杆俯卧撑","单臂俯卧撑"]},
- {k:"sq",n:"深蹲",pg:31,steps:["肩倒立深蹲","折刀深蹲","支撑深蹲","半深蹲","标准深蹲","窄距深蹲","偏重深蹲","单腿半深蹲","单腿辅助深蹲","单腿深蹲"]},
- {k:"pu",n:"引体",pg:41,steps:["垂直引体","水平引体向上","折刀引体向上","半引体向上","标准引体向上","窄距引体向上","偏重引体向上","单臂半引体向上","单臂辅助引体向上","单臂引体向上"]},
- {k:"lg",n:"举腿",pg:11,steps:["坐姿屈膝","平卧抬膝","平卧屈举腿","平卧蛙举腿","平卧直举腿","悬垂屈膝","悬垂屈举腿","悬垂蛙举腿","悬垂半举腿","悬垂直举腿"]},
- {k:"br",n:"桥",pg:21,steps:["短桥","直桥","高低桥","顶桥","半桥","标准桥","下行桥","上行桥","合桥","铁板桥"]}
+ {k:"p",n:"俯卧撑",pg:1,video:1,steps:[{n:"墙壁俯卧撑",g:"3组×50"},{n:"上斜俯卧撑",g:"3组×40"},{n:"膝盖俯卧撑",g:"3组×30"},{n:"半俯卧撑",g:"2组×25"},{n:"标准俯卧撑",g:"2组×20"},{n:"窄距俯卧撑",g:"2组×20"},{n:"偏重俯卧撑",g:"2组×20(每侧)"},{n:"单臂半俯卧撑",g:"2组×20(每侧)"},{n:"杠杆俯卧撑",g:"2组×20(每侧)"},{n:"单臂俯卧撑",g:"1组×100(每侧)"}]},
+ {k:"sq",n:"深蹲",pg:31,video:1,steps:[{n:"肩倒立深蹲",g:"3组×50"},{n:"折刀深蹲",g:"3组×40"},{n:"支撑深蹲",g:"3组×30"},{n:"半深蹲",g:"3组×50"},{n:"标准深蹲",g:"3组×30"},{n:"窄距深蹲",g:"3组×20"},{n:"偏重深蹲",g:"3组×20(每侧)"},{n:"单腿半深蹲",g:"3组×20(每侧)"},{n:"单腿辅助深蹲",g:"3组×20(每侧)"},{n:"单腿深蹲",g:"2组×50(每侧)"}]},
+ {k:"pu",n:"引体",pg:41,video:1,steps:[{n:"垂直引体",g:"3组×40"},{n:"水平引体向上",g:"3组×30"},{n:"折刀引体向上",g:"3组×20"},{n:"半引体向上",g:"3组×15"},{n:"标准引体向上",g:"3组×10"},{n:"窄距引体向上",g:"3组×10"},{n:"偏重引体向上",g:"3组×8(每侧)"},{n:"单臂半引体向上",g:"2组×8(每侧)"},{n:"单臂辅助引体向上",g:"2组×7(每侧)"},{n:"单臂引体向上",g:"2组×6(每侧)"}]},
+ {k:"lg",n:"举腿",pg:11,video:1,steps:[{n:"坐姿屈膝",g:"3组×40"},{n:"平卧抬膝",g:"3组×35"},{n:"平卧屈举腿",g:"3组×30"},{n:"平卧蛙举腿",g:"3组×25"},{n:"平卧直举腿",g:"3组×20"},{n:"悬垂屈膝",g:"2组×15"},{n:"悬垂屈举腿",g:"2组×15"},{n:"悬垂蛙举腿",g:"2组×15"},{n:"悬垂半举腿",g:"2组×15"},{n:"悬垂直举腿",g:"2组×30"}]},
+ {k:"br",n:"桥",pg:21,video:1,steps:[{n:"短桥",g:"3组×50"},{n:"直桥",g:"3组×40"},{n:"高低桥",g:"3组×30"},{n:"顶桥",g:"3组×25"},{n:"半桥",g:"3组×20"},{n:"标准桥",g:"2组×15"},{n:"下行桥",g:"2组×10"},{n:"上行桥",g:"2组×8"},{n:"合桥",g:"2组×6"},{n:"铁板桥",g:"2组×30"}]},
+ {k:"hs",n:"倒立撑",pg:0,video:0,note:"官方无视频·文字版",steps:[{n:"靠墙顶立",g:"2分钟(静力)"},{n:"乌鸦式",g:"1分钟(静力)"},{n:"靠墙倒立",g:"2分钟(静力)"},{n:"半倒立撑",g:"3组×20"},{n:"标准倒立撑",g:"3组×15"},{n:"窄距倒立撑",g:"2组×12"},{n:"偏重倒立撑",g:"2组×10(每侧)"},{n:"单臂半倒立撑",g:"2组×8(每侧)"},{n:"杠杆倒立撑",g:"2组×6(每侧)"},{n:"单臂倒立撑",g:"1组×5(每侧)"}]}
 ];
 var PRISON_KEY="wb_prison_v1";
 function prisonLoad(){
@@ -2037,17 +2038,19 @@ function renderPrison(){
   var box=$("#prisonSteps"); if(!box||!art) return;
   box.innerHTML="";
   for(var j=0;j<art.steps.length;j++){
+    var st2=art.steps[j];
     var id=art.k+"|"+j;
     var isDone=!!(prisonState.done&&prisonState.done[id]);
-    var row="<div data-play=\""+j+"\" style=\"border:1px solid var(--line);border-radius:11px;padding:8px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;background:"+(isDone?"rgba(232,163,61,.07)":"none")+";\">"
+    var vidTxt=art.video?("P"+(art.pg+j)+" 视频"):(art.note||"文字版");
+    var row="<div data-play=\""+j+"\" style=\"border:1px solid var(--line);border-radius:11px;padding:8px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;"+(art.video?"cursor:pointer;":"")+"background:"+(isDone?"rgba(232,163,61,.07)":"none")+";\">"
       +"<span style=\"flex:none;width:26px;height:26px;border-radius:50%;border:2px solid "+(isDone?"#E8A33D":"var(--line)")+";display:flex;align-items:center;justify-content:center;font-size:13px;color:"+(isDone?"#E8A33D":"var(--muted)")+";\">"+(j+1)+"</span>"
-      +"<span style=\"flex:1;min-width:0;\"><b style=\"font-size:13.5px;\">"+esc(art.steps[j])+"</b><span style=\"font-size:11px;color:var(--muted);margin-left:8px;\">"+(isDone?"已达标 ✓":"P"+ (art.pg+j) +" 视频")+"</span></span>"
-      +"<span style=\"flex:none;display:flex;gap:6px;\"><button class=\"btn ghost sm\" data-v=\""+j+"\">▶ 视频</button><button class=\"btn sm\" data-d=\""+id+"\" style=\"min-width:88px;\">"+(isDone?"撤销":"✓ 达标")+"</button></span></div>";
+      +"<span style=\"flex:1;min-width:0;\"><b style=\"font-size:13.5px;\">"+esc(st2.n)+"</b><div style=\"font-size:11.5px;color:var(--muted);margin-top:2px;\">达标："+esc(st2.g)+(isDone?" · 已达标 ✓":"")+" · "+vidTxt+"</div></span>"
+      +"<span style=\"flex:none;display:flex;gap:6px;\">"+(art.video?"<button class=\"btn ghost sm\" data-v=\""+j+"\">▶ 视频</button>":"")+"<button class=\"btn sm\" data-d=\""+id+"\" style=\"min-width:88px;\">"+(isDone?"撤销":"✓ 达标")+"</button></span></div>";
     box.innerHTML=box.innerHTML+row;
   }
   box.querySelectorAll("button[data-v]").forEach(function(b){ b.onclick=function(ev){ ev.stopPropagation(); playPrisonStep(parseInt(b.dataset.v,10)); }; });
   box.querySelectorAll("button[data-d]").forEach(function(b){ b.onclick=function(ev){ ev.stopPropagation(); var id2=b.dataset.d; if(!prisonState.done[id2]){ prisonMark(id2); var td=prisonState.td||{date:"",n:0}; var t2=prisonTodayStr(); if(td.date!==t2){ td={date:t2,n:0}; } td.n++; prisonState.td=td; prisonSave(prisonState); toast("达标打卡 ✓"); } else { prisonMark(id2); toast("已撤销"); } renderPrison(); }; });
-  box.querySelectorAll("div[data-play]").forEach(function(row){ row.onclick=function(){ playPrisonStep(parseInt(row.getAttribute("data-play"),10)); }; });
+  box.querySelectorAll("div[data-play]").forEach(function(row){ row.onclick=function(){ var ai2=null; for(var z=0;z<PRISON_ART.length;z++){ if(PRISON_ART[z].k===prisonState.cur){ ai2=PRISON_ART[z]; break; } } if(ai2&&ai2.video===0){ toast("倒立撑无视频：按要领练，能达标就打卡"); return; } playPrisonStep(parseInt(row.getAttribute("data-play"),10)); }; });
   // 计划区状态
   var plan=$("#prisonPlan");
   if(prisonState.plan){ plan.style.display="block"; plan.textContent=prisonState.plan; var pw=$("#prisonPlanDoneWrap"); pw.style.display="block"; pw.style.display=(tDone>0?"none":"block"); }
@@ -2056,6 +2059,7 @@ function renderPrison(){
 function playPrisonStep(si){
   var art=null; for(var i=0;i<PRISON_ART.length;i++){ if(PRISON_ART[i].k===prisonState.cur){ art=PRISON_ART[i]; break; } }
   if(!art||si<0||si>=art.steps.length) return;
+  if(art.video===0){ toast("倒立撑官方无视频，按文字要领与达标目标练，能完成即可打卡"); return; }
   var wrap=$("#prisonPlayerWrap"), now=$("#prisonNow"), fr=$("#prisonFrame");
   if(wrap) wrap.style.display="block";
   if(now) now.innerHTML="正在播放：<b>"+art.n+" · "+esc(art.steps[si])+"</b>（第 "+(si+1)+"/10 式）· 学完练几组，标准完成就点「✓ 达标」";
