@@ -2062,9 +2062,9 @@ function playPrisonStep(si){
   if(art.video===0){ toast("倒立撑官方无视频，按文字要领与达标目标练，能完成即可打卡"); return; }
   var wrap=$("#prisonPlayerWrap"), now=$("#prisonNow"), fr=$("#prisonFrame");
   if(wrap) wrap.style.display="block";
-  if(now) now.innerHTML="正在播放：<b>"+art.n+" · "+esc(art.steps[si])+"</b>（第 "+(si+1)+"/10 式）· 学完练几组，标准完成就点「✓ 达标」";
+  if(now) now.innerHTML="正在播放：<b>"+art.n+" · "+esc(art.steps[si].n)+"</b>（第 "+(si+1)+"/10 式）· 学完练几组，标准完成就点「✓ 达标」";
   if(fr) fr.src=prisonSrcUrl(art.k,si);
-  var wrap2=document.getElementById("prisonPlayerWrap"); if(wrap2) wrap2.scrollIntoView({behavior:"smooth",block:"nearest"});
+  var wrap2=document.getElementById("prisonPlayerWrap"); if(wrap2){ try{ wrap2.scrollIntoView(); }catch(e){} }
 }
 function prisonAskAI(){
   var key=getKey&&getKey()?getKey():"";
