@@ -727,6 +727,30 @@ details[open] summary::before{content:"▾ ";}
         <div style="text-align:center;font-size:11.5px;color:#7A838C;margin-top:14px;">⚠️ 供日常保养参考，不替代医疗诊断 · 体感不适应停练就医</div>
       </section>
 
+      <section id="tab-meiwen" class="tabpane hidden">
+        <div class="hint" style="margin:0 0 12px;">📖 <b>美文集</b><div style="margin-top:6px;font-size:12.5px;line-height:1.6;">每周美文 + 知识点学习（自动化任务产出，定期收录）· 点击标题直接在工作台内阅读</div></div>
+
+        <div class="seg" id="meiwenSeg" style="margin-bottom:10px;">
+          <button data-t="meiwen" class="active">📖 美文</button>
+          <button data-t="knowledge">📘 知识点</button>
+        </div>
+
+        <div class="card" id="meiwenListWrap">
+          <div id="meiwenList"></div>
+        </div>
+
+        <div class="card" id="meiwenReader" style="display:none;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+            <button class="btn ghost sm" id="meiwenBack">← 返回列表</button>
+            <span id="meiwenTitle" style="font-size:13.5px;font-weight:700;color:#E8A33D;flex:1;min-width:120px;"></span>
+            <a id="meiwenNewWin" class="btn ghost sm" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block;">↗ 新窗口</a>
+          </div>
+          <div style="width:100%;height:72vh;min-height:420px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0E1114;">
+            <iframe id="meiwenFrame" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
+          </div>
+        </div>
+      </section>
+
       <section id="tab-fit" class="tabpane hidden">
         <div class="hint" style="margin:0 0 12px;">🔥 大基数减重跟练 · ALEX健身频道（大体重友好：无跑跳 / 不伤膝盖 / 站立为主）。点一条 → 内嵌播放直接跟练；按「先短后长」排好，从零基础入门开始，逐步加时。⚠️ 大体重开始前建议先咨询医生，跟练量力而行、膝盖不适立刻停。</div>
         <div class="card">
@@ -1404,9 +1428,9 @@ function showTab(tab){
     s.classList.toggle("hidden", s.id!=="tab-"+tab);
   });
   // 底部分组按钮高亮（首页/学习/身体/心灵/我的）
-  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",tune:"study",guwen:"study",fit:"body",prison:"body",neizang:"body",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
+  const grpMap={home:"home",python:"study",lang:"study",inspire:"study",biz:"study",paradox:"study",hanzi:"study",chem:"study",tcm:"study",liuren:"study",tune:"study",guwen:"study",meiwen:"study",fit:"body",prison:"body",neizang:"body",taichi:"body",yueqi:"body",memory:"mind",xinzi:"mind",rest:"mind",music:"mind",book:"wallet",archive:"mine"};
   document.querySelectorAll(".tabbar .grp").forEach(b=>b.classList.toggle("active", b.dataset.grp===(grpMap[tab]||"")));
-  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="fit")renderFit(); if(tab==="prison")renderPrison(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="tune")renderTune(); if(tab==="guwen")renderGuwen(); if(tab==="book")renderBook();
+  if(tab==="python")renderPy(); if(tab==="lang")renderLang(); if(tab==="inspire")renderInspire(); if(tab==="biz")renderBiz(); if(tab==="paradox")renderParadox(); if(tab==="hanzi")renderHanzi(); if(tab==="fit")renderFit(); if(tab==="prison")renderPrison(); if(tab==="taichi")renderTaichi(); if(tab==="xinzi")renderXinzi(); if(tab==="yueqi")renderYueqi(); if(tab==="memory")renderMem(); if(tab==="rest")renderRest(); if(tab==="archive")renderAll(); if(tab==="chem")renderChem(); if(tab==="tcm")renderTcm(); if(tab==="music")renderMusic(); if(tab==="liuren")renderLiuren(); if(tab==="tune")renderTune(); if(tab==="guwen")renderGuwen(); if(tab==="meiwen")renderMeiwen(); if(tab==="book")renderBook();
   if(tab==="home") renderHome();
 }
 
@@ -1427,7 +1451,8 @@ const GROUP_DEF = {
     {url:"http://1.14.44.226:9002", name:"vibe研究", svg:'<circle cx="11" cy="11" r="6.5" stroke="#E8A33D" stroke-width="1.6"/><path d="M16 16l5 5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><circle cx="13.5" cy="8.5" r="1.2" fill="#E8A33D" stroke="none"/>'},
     {url:"http://1.14.44.226:9003", name:"便签Memos", svg:'<path d="M5 4h14a1 1 0 011 1v10l-5 5H5a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6M9 12h4" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
     {url:"http://192.168.0.142:3000", name:"英语FreeLingo", svg:'<path d="M4 5h9a3 3 0 013 3v11a3 3 0 01-3 3H4a1 1 0 01-1-1V6a1 1 0 011-1z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 8h7M8 12h7M8 16h4" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><path d="M12 8V4a3 3 0 013-3h4a1 1 0 011 1v4" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/>'},
-    {tab:"guwen", name:"古文", svg:'<path d="M7.5 4v16M12 4v16M16.5 4v16" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><path d="M4.5 8.5h5M4.5 13.5h5M14.5 8.5h5M14.5 13.5h5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'}
+    {tab:"guwen", name:"古文", svg:'<path d="M7.5 4v16M12 4v16M16.5 4v16" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/><path d="M4.5 8.5h5M4.5 13.5h5M14.5 8.5h5M14.5 13.5h5" stroke="#E8A33D" stroke-width="1.6" stroke-linecap="round"/>'},
+    {tab:"meiwen", name:"美文集", svg:'<path d="M4 5h7a2 2 0 012 2v12a2 2 0 00-2-2H4z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/><path d="M20 5h-7a2 2 0 00-2 2v12a2 2 0 012-2h7z" stroke="#E8A33D" stroke-width="1.6" stroke-linejoin="round"/>'}
   ]},
   body:{title:"💪 身体", items:[
     {tab:"taichi", name:"拳术", svg:'<circle cx="12" cy="12" r="9" stroke="#E8A33D" stroke-width="1.6"/><path d="M12 12a4.5 4.5 0 010-9 4.5 4.5 0 110 9 4.5 4.5 0 010 9" stroke="#E8A33D" stroke-width="1.6"/>'},
@@ -2139,6 +2164,75 @@ function prisonWire(){
   var ask=$("#prisonAsk"); if(ask){ ask.onkeydown=function(ev){ if(ev.key==="Enter"&&(ev.ctrlKey||ev.metaKey)) prisonAskAI(); }; }
 }
 prisonWire();
+
+/* ===================== 美文集（美文 + 知识点，内嵌阅读） ===================== */
+var MEIWEN_FALLBACK=[
+  {type:"meiwen",date:"2026-07-24",title:"📖 本周美文 · 想清楚，才说得漂亮（逻辑 × 演讲）",file:"meiwen-2026-07-24.html"},
+  {type:"meiwen",date:"2026-07-23",title:"📖 本周美文 · 自律即自由，表达见真我",file:"meiwen-2026-07-23.html"},
+  {type:"knowledge",date:"2026-07-24",title:"每周知识点 · 盐铁专营",file:"knowledge-2026-07-24.html"},
+  {type:"knowledge",date:"2026-07-23",title:"知识点学习 · 「五到」记忆法",file:"knowledge-2026-07-23.html"}
+];
+var meiwenData=null, meiwenType="meiwen", meiwenTried=false;
+function renderMeiwen(){
+  var listEl=$("#meiwenList"); if(!listEl) return;
+  var back=$("#meiwenBack"); if(back) back.onclick=function(){ meiwenReaderClose(); };
+  var segEl=$("#meiwenSeg");
+  if(segEl){
+    var bs=segEl.querySelectorAll("button[data-t]");
+    for(var i=0;i<bs.length;i++){
+      (function(b){
+        b.className=(b.getAttribute("data-t")===meiwenType)?"active":"";
+        b.onclick=function(){ meiwenType=b.getAttribute("data-t"); meiwenReaderClose(); renderMeiwen(); };
+      })(bs[i]);
+    }
+  }
+  if(!meiwenData && !meiwenTried){ meiwenTried=true; meiwenLoad(); }
+  var data=meiwenData||MEIWEN_FALLBACK, rows=[];
+  for(var i2=0;i2<data.length;i2++){ if(data[i2].type===meiwenType) rows.push(data[i2]); }
+  if(!rows.length){ listEl.innerHTML='<div style="font-size:13px;color:var(--muted);padding:8px 0;">暂无文章</div>'; return; }
+  var html="";
+  for(var j=0;j<rows.length;j++){
+    var it=rows[j];
+    html+='<div data-f="'+esc(it.file)+'" data-ti="'+esc(it.title)+'" style="border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;">'
+      +'<span style="flex:none;font-size:11.5px;color:#E8A33D;background:var(--primary-soft);padding:2px 8px;border-radius:999px;">'+esc(it.date)+'</span>'
+      +'<span style="flex:1;min-width:0;font-size:13.5px;font-weight:600;">'+esc(it.title)+'</span>'
+      +'<span style="flex:none;font-size:12px;color:#E8A33D;">阅读 →</span></div>';
+  }
+  listEl.innerHTML=html;
+  var items=listEl.querySelectorAll("div[data-f]");
+  for(var k=0;k<items.length;k++){
+    (function(el){ el.onclick=function(){ meiwenOpen(el.getAttribute("data-f"), el.getAttribute("data-ti")); }; })(items[k]);
+  }
+}
+function meiwenOpen(fname,title){
+  var r=$("#meiwenReader"), w=$("#meiwenListWrap"), fr=$("#meiwenFrame"), tl=$("#meiwenTitle"), nw=$("#meiwenNewWin");
+  if(!r||!fr) return;
+  var url="meiwen/"+fname;
+  fr.src=url;
+  if(tl) tl.innerHTML=esc(title||fname);
+  if(nw) nw.setAttribute("href",url);
+  if(w) w.style.display="none";
+  r.style.display="block";
+  try{ r.scrollIntoView(); }catch(e){}
+}
+function meiwenReaderClose(){
+  var r=$("#meiwenReader"), w=$("#meiwenListWrap"), fr=$("#meiwenFrame");
+  if(r) r.style.display="none";
+  if(w) w.style.display="block";
+  if(fr) fr.setAttribute("src","about:blank");
+}
+function meiwenLoad(){
+  try{
+    var x=new XMLHttpRequest();
+    x.open("GET","meiwen/index.json",true);
+    x.onreadystatechange=function(){
+      if(x.readyState===4 && x.status===200){
+        try{ var j=JSON.parse(x.responseText); if(j&&j.length){ meiwenData=j; renderMeiwen(); } }catch(e){}
+      }
+    };
+    x.send();
+  }catch(e){}
+}
 
 /* 首页渲染 */
 function renderHome(){
