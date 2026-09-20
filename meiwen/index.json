@@ -1,6 +1,27 @@
 [
   {
     "type": "knowledge",
+    "date": "2026-09-20",
+    "title": "每周知识点 · 2026-09-20",
+    "file": "knowledge-2026-09-20.html",
+    "src": "knowledge_2026-09-20.md"
+  },
+  {
+    "type": "meiwen",
+    "date": "2026-09-20",
+    "title": "📖 本周美文 · 先立身，再立言（2026-09-20 第9周）",
+    "file": "meiwen-2026-09-20.html",
+    "src": "meiwen_2026-09-20.md"
+  },
+  {
+    "type": "meiwen",
+    "date": "2026-09-20",
+    "title": "📖 本周美文 · 把话说到，把事做到（2026-09-20 第9周）",
+    "file": "meiwen-2026-09-20-prev.html",
+    "src": "meiwen_2026-09-20_prev.md"
+  },
+  {
+    "type": "knowledge",
     "date": "2026-07-24",
     "title": "每周知识点 · 2026-07-24",
     "file": "knowledge-2026-07-24.html",
