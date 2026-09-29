@@ -463,6 +463,8 @@ details[open] summary::before{content:"▾ ";}
             <button data-l="英语" class="active">英语</button>
             <button data-l="韩语">韩语</button>
             <button data-l="日语">日语</button>
+            <button data-l="俄语">俄语</button>
+            <button data-l="德语">德语</button>
           </div>
           <div class="stats" id="langStats"></div>
           <div id="langCard"></div>
@@ -1033,6 +1035,34 @@ const LANG_WORDS = {
     {w:"じかん（時間）",m:"时间",ex:"<b>じかん</b>がない。（没时间）",mem:"谐音『几康』→几点康健=时间；图像：时钟。"},
     {w:"きょう（今日）",m:"今天",ex:"<b>きょう</b>は晴れ。（今天晴）",mem:"谐音『Kyo/可哟』→可哟今天是好天；图像：今日日历。"},
     {w:"すき（好き）",m:"喜欢",ex:"これが <b>すき</b>。（喜欢这个）",mem:"谐音『斯基』→斯基建的喜欢；图像：❤️。"}
+  ],
+  "俄语":[
+    {w:"привет",m:"你好（非正式）",ex:"<b>Привет</b>! Как дела?（你好！最近怎么样？）",mem:"谐音『普利维特』，俄语最日常的一声招呼。记：朋友见面，普利（索）维（系）特（别感情）。"},
+    {w:"здравствуйте",m:"您好（正式）",ex:"<b>Здравствуйте</b>, меня зовут Ли.（您好，我叫李。）",mem:"谐音『兹德拉斯特维杰』。词源：здрав（健康）+ствуйте（祝愿）→ 本意是祝您健康，跟中文『您安康』一个思路，正式场合用。"},
+    {w:"спасибо",m:"谢谢",ex:"<b>Спасибо</b> большое!（非常感谢！）",mem:"谐音『斯巴西巴』。词源：спаси（拯救）+Бог（上帝）→ 求上帝保佑你，道谢本身就是祝福。"},
+    {w:"пожалуйста",m:"请；不客气",ex:"Дайте, <b>пожалуйста</b>, воду.（请给我水。）",mem:"谐音『巴扎卢斯塔』。万能词：递东西说『请』，别人说谢谢就回它，等于『不客气』。"},
+    {w:"да",m:"是；好的",ex:"<b>Да</b>, я согласен.（是的，我同意。）",mem:"谐音『达』→ 点头认可，达（成）一致。"},
+    {w:"нет",m:"不；没有",ex:"<b>Нет</b>, спасибо.（不，谢谢。）",mem:"谐音『涅特』→ 摇头把提议捏掉。"},
+    {w:"извините",m:"对不起；请问",ex:"<b>Извините</b>, где метро?（请问，地铁在哪？）",mem:"谐音『伊兹维尼杰』。词源：из（去掉）+вина（过错）→ 请免我的过，既是道歉也是礼貌开场。"},
+    {w:"до свидания",m:"再见",ex:"<b>До свидания</b>! До завтра.（再见！明天见。）",mem:"谐音『达 斯维达尼亚』。拆 до（到…为止）+свидания（见面）→ 到再见时。"},
+    {w:"вода",m:"水",ex:"Это <b>вода</b>.（这是水。）",mem:"谐音『瓦达』。发音要点：о 不在重音上要读成 а，所以是瓦达、不是沃达。"},
+    {w:"хлеб",m:"面包",ex:"Это <b>хлеб</b>.（这是面包。）",mem:"谐音『赫列普』。俄语餐桌离不开的词，面包在俄语里＝生命。"},
+    {w:"друг",m:"朋友",ex:"Он мой <b>друг</b>.（他是我的朋友。）",mem:"谐音『德鲁克』。词源与 другой（另一个）同源 → 朋友是另一个我。"},
+    {w:"мама",m:"妈妈",ex:"Это моя <b>мама</b>.（这是我妈妈。）",mem:"谐音『妈妈』，全球通用，最好记的一个词。"}
+  ],
+  "德语":[
+    {w:"Hallo",m:"你好",ex:"<b>Hallo</b>! Wie geht es dir?（你好！你怎么样？）",mem:"谐音『哈罗』，打电话那种招呼，德语最通用的问候。"},
+    {w:"Guten Tag",m:"您好（日安）",ex:"<b>Guten Tag</b>, ich heiße Li.（您好，我叫李。）",mem:"谐音『古腾 塔克』。拆 gut（好）+Tag（日子）→ 好日子，白天正式问候。"},
+    {w:"Danke",m:"谢谢",ex:"<b>Danke</b> schön!（多谢！）",mem:"谐音『当克』。谢人时当面表达克制不住的感激。"},
+    {w:"Bitte",m:"请；不客气",ex:"Einen Kaffee, <b>bitte</b>.（请给我一杯咖啡。）",mem:"谐音『比特』。一个词两用：请求时说请，别人道谢回不客气。"},
+    {w:"ja",m:"是；对",ex:"<b>Ja</b>, das stimmt.（是的，没错。）",mem:"谐音『呀』。发音要点：德语 j 读 y，所以 ja 念呀。"},
+    {w:"nein",m:"不；不是",ex:"<b>Nein</b>, danke.（不，谢谢。）",mem:"谐音『奈恩』→ 奈（何）要说否。"},
+    {w:"Entschuldigung",m:"对不起；打扰一下",ex:"<b>Entschuldigung</b>, wo ist der Bahnhof?（请问火车站在哪？）",mem:"谐音『恩特舒尔迪贡』。词源：ent（解除）+Schuld（过错）→ 解除过错＝对不起。德语最长常用词之一，念顺了很唬人。"},
+    {w:"Tschüss",m:"再见（口语）",ex:"<b>Tschüss</b>! Bis morgen.（再见！明天见。）",mem:"谐音『去斯』。口语告别，比 Auf Wiedersehen 轻松随意。"},
+    {w:"das Wasser",m:"水",ex:"Ich trinke <b>Wasser</b>.（我喝水。）",mem:"谐音『瓦瑟』。与英语 water 同源。重点：德语名词必须连冠词一起背 → das Wasser。"},
+    {w:"das Brot",m:"面包",ex:"Das ist <b>Brot</b>.（这是面包。）",mem:"谐音『布罗特』。与英语 bread 同源（b/p 音变），放一起记。"},
+    {w:"der Freund",m:"朋友（男）",ex:"Er ist mein <b>Freund</b>.（他是我的朋友。）",mem:"谐音『弗罗因德』。与英语 friend 同源；女性朋友是 die Freundin。"},
+    {w:"die Mutter",m:"妈妈",ex:"Das ist meine <b>Mutter</b>.（这是我妈妈。）",mem:"谐音『姆特』。与英语 mother 同源，词头 M 一脉相承。"}
   ]
 };
 
@@ -1294,7 +1324,7 @@ function schedulePush(){
 }
 let state = load() || {
   pyCursor:0, pyDone:[], pyDate:"", pyNotes:[],
-  lang:{ "英语":{cursor:0,done:[],lastDate:""}, "韩语":{cursor:0,done:[],lastDate:""}, "日语":{cursor:0,done:[],lastDate:""} },
+  lang:{ "英语":{cursor:0,done:[],lastDate:""}, "韩语":{cursor:0,done:[],lastDate:""}, "日语":{cursor:0,done:[],lastDate:""}, "俄语":{cursor:0,done:[],lastDate:""}, "德语":{cursor:0,done:[],lastDate:""} },
   langCur:"英语",
   inspireCursor:0, inspireDone:[], inspireDate:"", myInspire:[],
   bizCursor:0, bizDone:[], bizDate:"", myBiz:[],
@@ -1339,7 +1369,7 @@ if(!state.yueqiCat||!YUEQI_LIB[state.yueqiCat]) state.yueqiCat="陶埙";
 const $ = s=>document.querySelector(s);
 function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function attrEsc(s){return esc(s).replace(/"/g,"&quot;");}
-function langCode(L){return L==="英语"?"en-US":L==="韩语"?"ko-KR":"ja-JP";}
+function langCode(L){return L==="英语"?"en-US":L==="韩语"?"ko-KR":L==="俄语"?"ru-RU":L==="德语"?"de-DE":"ja-JP";}
 function foreignPart(exHtml){
   let t=(exHtml||"").replace(/<[^>]+>/g,"");
   const i=t.indexOf("（"); if(i>=0) t=t.slice(0,i);
@@ -2292,6 +2322,14 @@ const LANG_VIDEO = {
     {t:"英语兔·免费音标课", u:"https://www.bilibili.com/video/BV1iV411z7Nj", n:"零基础首选，1102万粉"},
     {t:"英语兔·语法体系总览", u:"https://www.bilibili.com/video/BV1r54y1m7gd", n:"一个视频说清整个语法体系"},
     {t:"李咏梅·国际音标（完整版）", u:"https://www.bilibili.com/video/BV1ts411T7Qe", n:"音标神课，口型拆解"}
+  ],
+  "俄语":[
+    {t:"2025新版《大学俄语》全册精讲", u:"https://www.bilibili.com/video/BV1VYpxzKE3f", n:"发音篇完整：33字母／弱化／调型（11万播放）"},
+    {t:"全648集·俄语课程（含日常用语）", u:"https://www.bilibili.com/video/BV1oN411D7VB", n:"从字母表到大舌颤音，含常用口语"}
+  ],
+  "德语":[
+    {t:"《走遍德国》整60集（0→B2）", u:"https://www.bilibili.com/video/BV1ajHaz7Eo3", n:"教材同序，23万播放，零基础首选"},
+    {t:"【全200集】德语教程·零基础到精通", u:"https://www.bilibili.com/video/BV1bEZqYzEnV", n:"160小时全程精讲，发音＋语法＋词汇"}
   ]
 };
 
