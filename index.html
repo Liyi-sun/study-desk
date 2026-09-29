@@ -1340,7 +1340,8 @@ let state = load() || {
   liurenXiaoCursor:0, liurenXiaoDone:[], liurenXiaoDate:"", liurenDaCursor:0, liurenDaDone:[], liurenDaDate:"",
   book:[], bookSeq:1, ledgers:[{id:"main",name:"日常记账"}]
 };
-if(!state.lang["英语"]) state.lang={"英语":{cursor:0,done:[],lastDate:""},"韩语":{cursor:0,done:[],lastDate:""},"日语":{cursor:0,done:[],lastDate:""}};
+if(!state.lang) state.lang={};
+["英语","韩语","日语","俄语","德语"].forEach(function(L){ if(!state.lang[L]||typeof state.lang[L]!=="object") state.lang[L]={cursor:0,done:[],lastDate:""}; if(!Array.isArray(state.lang[L].done)) state.lang[L].done=[]; if(typeof state.lang[L].cursor!=="number") state.lang[L].cursor=0; });
 if(!state.langCur) state.langCur="英语";
 if(!state.paradoxCursor) state.paradoxCursor=0; if(!Array.isArray(state.paradoxDone)) state.paradoxDone=[];
 if(!state.hanziCursor) state.hanziCursor=0; if(!Array.isArray(state.hanziDone)) state.hanziDone=[];
