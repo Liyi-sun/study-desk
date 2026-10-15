@@ -1685,22 +1685,58 @@ function closeDrawer(){
   $("#drawerMask").classList.remove("show");
   $("#drawer").classList.remove("show");
 }
-/* ===== 外链入口统一走这里：安卓 PWA 的内嵌标签页遇 HTTP Basic Auth(401) 会白屏并崩掉整个 App =====
-   ⇒ 安卓下改用 intent:// 交给系统浏览器（能正常弹认证框）；其余平台保持原行为 ===== */
+/* ===== 外链入口统一走这里：安卓 PWA 的内嵌视图遇 HTTP Basic Auth(401) 会白屏并崩掉整个 App =====
+   ⇒ 安卓下先试 intent:// 交给系统浏览器；1.5 秒后若还停在本页（说明被系统拦了）
+     再弹「用浏览器打开」面板兜底：真·<a> 点击 + 复制链接（v3, 2026-10-16：三星包名为准，去掉未安装的 Chrome 选项） ===== */
+var XR_MK=null, XR_PKG="", XR_TXT="用手机浏览器打开";
 function XRopen(u){
-  try{
-    var ua=(navigator.userAgent||"").toLowerCase();
-    if(ua.indexOf("android")>=0){
-      var m=/^(https?):\/\/(.+)$/.exec(u);
-      if(m){
-        window.location.href="intent://"+m[2]+"#Intent;scheme="+m[1]
-          +";action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE"
-          +";S.browser_fallback_url="+encodeURIComponent(u)+";end";
-        return;
-      }
-    }
-    window.open(u,"_blank");
-  }catch(e){ window.open(u,"_blank"); }
+  var ua=(navigator.userAgent||"").toLowerCase();
+  if(ua.indexOf("android")<0){ window.open(u,"_blank"); return; }
+  var m=/^(https?):\/\/([^\/?#]+)([\/?#][^#]*)?$/.exec(u);
+  if(!m){ window.open(u,"_blank"); return; }
+  var scheme=m[1], host=m[2], path=m[3]||"/";
+  XR_MK=function(pkg){
+    return "intent://"+host+path+"#Intent;scheme="+scheme
+      +";action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE"
+      +(pkg?";package="+pkg:"")
+      +";S.browser_fallback_url="+encodeURIComponent(u)+";end";
+  };
+  var isSam=(ua.indexOf("samsung")>=0||ua.indexOf("sm-")>=0);
+  XR_PKG=isSam?"com.sec.android.app.sbrowser":"";
+  XR_TXT=isSam?"用三星浏览器打开":"用手机浏览器打开";
+  try{ window.location.href=XR_MK(XR_PKG); }catch(e){}
+  setTimeout(function(){
+    if(document.visibilityState==="visible") XRsheet(u);
+  },1500);
+}
+function XRsheet(u){
+  XRcss();
+  var mk=XR_MK||function(){ return u; };
+  var old=document.getElementById("xrSheetOv");
+  if(old&&old.parentNode) old.parentNode.removeChild(old);
+  var ov=document.createElement("div"); ov.id="xrSheetOv"; ov.className="xr-ov";
+  var sh=document.createElement("div"); sh.className="xr-sh";
+  sh.innerHTML='<div class="xr-h">没跳出去？点下面任一个</div>'
+    +'<div class="xr-u">'+esc(u)+'</div>'
+    +'<a class="xr-b" href="'+mk(XR_PKG||"")+'">'+XR_TXT+'</a>'
+    +'<button class="xr-b xr-b2" id="xrCopyBtn" type="button">复制链接（自己粘到浏览器）</button>'
+    +'<button class="xr-b xr-b3" id="xrCloseBtn" type="button">取消</button>';
+  ov.appendChild(sh); document.body.appendChild(ov);
+  var cb=document.getElementById("xrCloseBtn"); if(cb) cb.onclick=function(){ ov.parentNode.removeChild(ov); };
+  var cp=document.getElementById("xrCopyBtn"); if(cp) cp.onclick=function(){ copyLink(u); };
+  ov.onclick=function(ev){ if(ev.target===ov) ov.parentNode.removeChild(ov); };
+}
+function XRcss(){
+  if(document.getElementById("xrSheetCss")) return;
+  var s=document.createElement("style"); s.id="xrSheetCss";
+  s.textContent=".xr-ov{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;}"
+    +".xr-sh{width:100%;max-width:480px;box-sizing:border-box;background:#1D232A;border:1px solid rgba(255,255,255,.08);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.5);}"
+    +".xr-h{font-size:15px;font-weight:700;color:#E9E4DC;margin-bottom:6px;}"
+    +".xr-u{font-size:11.5px;color:#8A8377;word-break:break-all;margin-bottom:12px;}"
+    +".xr-b{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;font-size:15px;font-weight:600;color:#0E1114;background:#E8A33D;border:none;border-radius:12px;padding:13px 12px;margin-bottom:9px;cursor:pointer;font-family:inherit;-webkit-appearance:none;appearance:none;}"
+    +".xr-b2{background:#2A323A;color:#E9E4DC;}"
+    +".xr-b3{background:transparent;color:#8A8377;font-weight:500;margin-bottom:0;}";
+  document.head.appendChild(s);
 }
 function copyLink(url){
   const done=()=>toast("链接已复制 ✔");
